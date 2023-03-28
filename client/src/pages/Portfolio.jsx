@@ -1,9 +1,9 @@
 import React from 'react'
-import Header from "../components/Header"
-import Contact from "../components/Contact"
+import Header from "../components/Portfolio/Header"
+import Contact from "../components/Portfolio/Contact"
 import Footer from "../layouts/Footer"
-import Projects from "../components/Projects"
-import Skills from "../components/Skills"
+import Projects from "../components/Portfolio/Projects"
+import Skills from "../components/Portfolio/Skills"
 
 function Portfolio() {
   return (

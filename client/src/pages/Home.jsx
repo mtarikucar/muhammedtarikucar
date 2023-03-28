@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaRegArrowAltCircleRight } from "react-icons/fa";
+import { FaArrowsAltH } from "react-icons/fa";
 import { GiBookAura, GiPlastron } from "react-icons/gi";
 import logo1 from "../assets/images/astronout1.png";
 import { NavLink } from "react-router-dom";
@@ -54,16 +54,16 @@ function Home() {
       </div>
 
       <div className="middle w-1/6 flex flex-row- min-h-screen justify-center items-center bg-gradient-to-r from-[#191825] to-white">
-        <FaRegArrowAltCircleRight
+        <FaArrowsAltH
           className="ease-in duration-700"
           size={32}
           color="white"
           style={
             state == 1
-              ? { transform: "rotate(180deg)" }
-              : state == null
               ? { transform: "rotate(90deg)" }
-              : { transform: "rotate(0deg)" }
+              : state == null
+              ? { transform: "rotate(180deg)" }
+              : { transform: "rotate(270deg)" }
           }
           onClick={() => setState(!state)}
         />
@@ -79,7 +79,7 @@ function Home() {
         onClick={() => setState(0)}
       >
         <div className="container flex flex-row min-h-screen justify-center items-center ">
-          <div className="text-base font-bold ease-in duration-500 text-xl hover:text-3xl ">
+          <div className=" font-bold ease-in duration-500 text-xl hover:text-3xl ">
             {state == 1 ? (
               <>
                 <GiBookAura

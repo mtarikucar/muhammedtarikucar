@@ -5,7 +5,8 @@ module.exports = {
     screens: {
       'lg2': {'max': '1623px'},
       'lg': {'max': '1023px'},
-      'tl': {'max': '723px'},
+      'md': {'max': '723px'},
+      'sm': {'max': "623px"}
       },
       container: {
         center: true,
@@ -24,5 +25,7 @@ module.exports = {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar')({ nocompatible: true }),
+  ],
 };

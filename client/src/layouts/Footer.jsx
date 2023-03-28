@@ -4,7 +4,7 @@ function Footer() {
   return (
     <>
       <div className="footer bg-[#171717]">
-        <div className="wrap flex justify-between items-center px-12 text-white font-bold py-6 tl:px-4 tl:py-4 ">
+        <div className="wrap flex justify-between items-center px-12 text-white font-bold py-6 md:px-4 md:py-4 ">
           <h1 className="text-3xl">Muhammed Tarık Uçar</h1>
           <div className="flex gap-4 cursor-pointer ">
             <a href="https://www.instagram.com/tarikucr" target="_blank">
