@@ -4,7 +4,7 @@ const router = require("express").Router();
 
 router.get("/",getPost)
 router.get("/user/:id",getPostByUserId)
-router.post("/",verifyTokenAndAuth,addPost)
+router.post("/add",verifyTokenAndAuth,addPost)
 router.delete("/delete/:id",verifyTokenAndAuth,deletePost)
 router.put("/update/:id",verifyTokenAndAuth,updatePost)
 

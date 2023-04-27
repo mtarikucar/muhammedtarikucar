@@ -2,103 +2,95 @@ import { NavLink } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { MdArrowRight, MdArrowLeft } from "react-icons/md";
-import "swiper/css";
-import "swiper/css/effect-coverflow";
-import "swiper/css/pagination";
-import "swiper/css/navigation";
-
-import { EffectCoverflow, Pagination, Navigation } from "swiper";
 
 function Post({ post }) {
-  const audioRef = useRef();
+  /*     const audioRef = useRef();
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     audioRef.current;
     isPlaying == true ? audioRef.current.play() : audioRef.current.pause();
   }, [isPlaying]);
-
+ */
   return (
-    <div className="flex flex-col justify-center items-center h-fit hover:bg-gray-300 rounded-2xl ease-in-out duration-500 shadow-2xl ">
-      <div className="relative flex flex-col items-center rounded mx-auto p-4 bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:!shadow-none ">
-        <div className="relative flex h-32 w-full justify-center rounded-xl bg-cover ">
-          <Swiper
-            effect={"coverflow"}
-            grabCursor={true}
-            centeredSlides={true}
-            autoplay={true}
-            loop={true}
-            slidesPerView={"auto"}
-            coverflowEffect={{
-              rotate: 0,
-              stretch: 0,
-              depth: 100,
-              modifier: 2.5,
-            }}
-            pagination={{ el: ".swiper-pagination", clickable: true }}
-            navigation={{
-              nextEl: ".swiper-button-next",
-              prevEl: ".swiper-button-prev",
-              clickable: true,
-            }}
-            modules={[EffectCoverflow, Pagination, Navigation]}
-            className="swiper_container z-0 rounded-xl "
+    <>
+      <article className="rounded-xl bg-white p-4 ring ring-indigo-50 sm:p-6 lg:p-8">
+        <div className="flex items-start sm:gap-8">
+          <div
+            className="grid h-20 w-20 shrink-0 place-content-center rounded-full border-2 border-indigo-500 m-4"
+            aria-hidden="true"
           >
-            {post.materials.map((material, key) => (
-              <SwiperSlide key={key}>
-                {material.type == "video" ? (
-                  <video
-                    src={material.url}
-                    autoPlay
-                    loop
-                    muted
-                    alt="slide_image"
-                  />
-                ) : (
-                  <img src={material.url} alt="slide_image" />
-                )}
-              </SwiperSlide>
-            ))}
-          </Swiper>
-          {post.sound && (
-            <div className="absolute -bottom-16 flex h-[87px] w-[87px] items-center justify-center rounded-full border-[4px] border-white backdrop-blur-lg dark:!border-navy-700 shadow-xl">
-              <div
-                className="Play-Pause z-50"
-                onClick={() => setIsPlaying(!isPlaying)}
-              >
-                {isPlaying && isPlaying == true ? (
-                  <img
-                    className="h-full w-full rounded-full hover:p-2  ease-in-out duration-300"
-                    src="\sounds\pause.svg"
-                    alt="pause"
-                  ></img>
-                ) : (
-                  <img
-                    className="h-full w-full rounded-full hover:p-2  ease-in-out duration-300"
-                    src="\sounds\play.svg"
-                    alt="play"
-                  />
-                )}
-              </div>
+            <div className="flex items-center gap-1">
+              <span className="h-8 w-0.5 rounded-full bg-indigo-500"></span>
+              <span className="h-6 w-0.5 rounded-full bg-indigo-500"></span>
+              <span className="h-4 w-0.5 rounded-full bg-indigo-500"></span>
+              <span className="h-6 w-0.5 rounded-full bg-indigo-500"></span>
+              <span className="h-8 w-0.5 rounded-full bg-indigo-500"></span>
             </div>
-          )}
-          <audio src={post.sound && post.sound} ref={audioRef}></audio>
-        </div>
-        <div className="mt-16 flex flex-col items-center w-full">
-          <h4 className="text-xl font-bold text-navy-700 dark:text-black ">
-            {post.title}
-          </h4>
-          <div className="text-base font-normal text-gray-600 max-h-36 overflow-hidden">
-            <div dangerouslySetInnerHTML={{ __html: post.content }}></div>
           </div>
-          <NavLink to={`/Blog/${post._id}`}>
-            <div className="text-lg font-bold text-navy-700 text-gray-500 border-2 px-4 py-1 mt-2 rounded-md hover:text-white hover:bg-gray-500 hover:border-none ease-in-out duration-300">
-              more
+
+          <div>
+            <strong className="rounded border border-indigo-500 bg-indigo-500 px-3 py-1.5 text-[10px] font-medium text-white">
+              Episode #101
+            </strong>
+
+            <h3 className="mt-4 text-lg font-medium sm:text-xl">
+              <a href="" className="hover:underline">
+                {" "}
+                Some Interesting Podcast Title{" "}
+              </a>
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-700">
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ipsam
+              nulla amet voluptatum sit rerum, atque, quo culpa ut
+              necessitatibus eius suscipit eum accusamus, aperiam voluptas
+              exercitationem facere aliquid fuga. Sint.
+            </p>
+
+            <div className="mt-4 sm:flex sm:items-center sm:gap-2">
+              <div className="flex items-center gap-1 text-gray-500">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+
+                <p className="text-xs font-medium">48:32 minutes</p>
+              </div>
+
+              <span className="hidden sm:block" aria-hidden="true">
+                &middot;
+              </span>
+
+              <p className="mt-2 text-xs font-medium text-gray-500 sm:mt-0">
+                Featuring{" "}
+                <a href="#" className="underline hover:text-gray-700">
+                  Barry
+                </a>
+                ,
+                <a href="#" className="underline hover:text-gray-700">
+                  Sandra
+                </a>{" "}
+                and
+                <a href="#" className="underline hover:text-gray-700">
+                  August
+                </a>
+              </p>
             </div>
-          </NavLink>
+          </div>
         </div>
-      </div>
-    </div>
+      </article>
+    </>
   );
 }
 

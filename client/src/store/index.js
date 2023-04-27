@@ -1,6 +1,5 @@
-import languageReducer from "./Language/languageSlice"
-import PostReducer from "./Post/PostSlice"
-import authReducer from "./Auth/AuthSlice";
+import authReducer from "./AuthSlice";
+import modal from "./modal"
 
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 
@@ -21,9 +20,8 @@ import {
   
   // Combine the reducers first
   const rootReducer = combineReducers({
-    language: languageReducer,
-    post: PostReducer,
     auth: authReducer,
+    modal: modal,
   });
   
   const persistConfig = {

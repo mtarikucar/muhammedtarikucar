@@ -1,23 +1,20 @@
 import React from "react";
-import { useEffect } from "react";
-
 import Post from "./Post";
 import PostLoad from "./PostLoad";
 
-import { getPosts } from "../../redux/Post/PostActions";
-import { useDispatch, useSelector } from "react-redux";
 
 function Posts({ custom_list }) {
-  const { posts, isFetching, error } = useSelector((store) => store.post);
-  const dispatch = useDispatch();
 
-  useEffect(() => {
+
+
+  /*   useEffect(() => {
     dispatch(getPosts());
   }, []);
-
+ */
   return (
     <>
-      {(isFetching || error) && (
+      <Post />
+      {/* {(isFetching || error) && (
         <>
           <PostLoad /> <PostLoad />
           <PostLoad />
@@ -33,7 +30,7 @@ function Posts({ custom_list }) {
           posts
             .slice(0)
             .reverse()
-            .map((post, key) => <Post key={key} post={post} />)}
+            .map((post, key) => <Post key={key} post={post} />)} */}
     </>
   );
 }

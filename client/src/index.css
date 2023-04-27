@@ -15,3 +15,10 @@ body{
 html,body{
     overflow-x: hidden;
 }
+
+.custom-audio-player audio::-webkit-media-controls-panel {
+    background-color: white;
+    display: flex;
+    
+    border-radius: 8px;
+  }

@@ -4,7 +4,7 @@ const JWT = require("jsonwebtoken");
 const User = require("../models/User.model");
 
 async function register(req, res) {
-  const { name, email, password, role } = req.body;
+  const { username, email, password } = req.body;
   try {
     const oldUser = await User.findOne({
       email: email,
@@ -17,12 +17,11 @@ async function register(req, res) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-
     const user = new User({
-      name: name,
+      name: username,
+      username,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: role,
     });
 
     await user.save();
@@ -42,11 +41,12 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
+  console.log(username, password);
   try {
     const user = await User.findOne({
-      email: email,
-      isActive: true
+      name: username,
+      isActive: true,
     });
 
     if (!user) {
@@ -75,13 +75,11 @@ async function login(req, res) {
       }
     );
 
+    delete user.password;
+
     return res.status(200).json({
-      status: "success",
-      message: "User is logined successfully",
-      data: {
-        token,
-        user: user,
-      },
+      token,
+      user,
     });
   } catch (err) {
     console.log(err);

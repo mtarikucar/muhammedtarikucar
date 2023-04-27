@@ -1,23 +1,25 @@
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { publicRequest } from "../utils/requestMethods";
-
+import React from "react";
+import ProfileCart from "../components/ProfileCart";
 import Posts from "../components/Post/Posts";
-function Profile() {
-  const { id } = useParams();
-  const [posts, setPosts] = useState([]);
-  useEffect(() => {
-    async () => {
-      const res = await publicRequest.get(`/posts/user/${id}`);
-      console.log(res.data);
-      setPosts(res.data);
-    };
-  }, []);
 
+function Profile() {
   return (
-    <div className="flex flex-col justify-center items-center h-screen">
-      <div className="profilecard">Profilecard</div>
-      <div className="posts">{posts && <Posts custom_list={posts} />}</div>
+    <div className="flex flex-row justify-center items-center">
+      <div className="grid grid-cols-3 w-3/4 gap-4">
+        <div className="col-span-1">
+          <ProfileCart />
+        </div>
+        <div className="col-span-2 flex flex-col m-3  justify-center items-center">
+          <div className="overflow-scroll max-h-[75vh] p-4 space-y-3 m-3">
+            <Posts />
+            <Posts />
+            <Posts />
+            <Posts />
+            <Posts />
+            <Posts />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

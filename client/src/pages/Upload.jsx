@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 import { FiUpload } from "react-icons/fi";
 import {
@@ -10,24 +11,16 @@ import {
 } from "firebase/storage";
 import app from "../../firebase";
 
+import axios from "axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import RichTextEditor from "../components/RichTextEditor";
 
-import { addPost } from "../redux/Post/PostActions";
-
 function Upload() {
-  const toastOptions = {
-    position: "bottom-left",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "dark",
-  };
+  const navigate = useNavigate();
 
   const [files, setFiles] = useState([]);
   const [content, setContent] = useState();
@@ -41,8 +34,7 @@ function Upload() {
   });
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  const { currentUser } = useSelector((store) => store.auth);
-  const dispatch = useDispatch();
+  const { currentUser, token } = useSelector((store) => store.auth);
 
   const handleFileUpload = (event) => {
     const newFiles = [...event.target.files].map((file) => {
@@ -51,6 +43,35 @@ function Upload() {
     });
     setFiles((prevFiles) => [...prevFiles, ...newFiles]);
   };
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation(
+    async (props) => {
+      const response = await axios.post(
+        "http://localhost:3000/api/posts",
+        props,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            id: currentUser._id,
+          },
+        }
+      );
+      return response.data;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("posts"); // Invalidate 'posts' query to refetch data and update the UI
+        navigate(`/Profile/${currentUser._id}`); // Navigate to the user's profile after a successful post creation
+      },
+      onError: (er)=>{
+        console.log(er);
+      }
+    }
+  );
 
   const upload = (file) => {
     const type = file.type.split("/")[0];
@@ -109,18 +130,7 @@ function Upload() {
   };
 
   useEffect(() => {
-    console.log(isAll + ":" + files.length);
     if (isAll == files.length) {
-      dispatch(
-        addPost({
-          title: titleRef.current.value,
-          content: content,
-          materials: uploadedFiles,
-          sound: voice,
-          category: "uncategorized",
-          author: currentUser.user._id,
-        })
-      );
       setProg({
         percent: 0,
         state: false,
@@ -129,20 +139,33 @@ function Upload() {
     isAll && toast(isAll + " files uploaded");
   }, [isAll]);
 
-  const handleClick = (e) => {
+  const handleClick = async (e) => {
     e.preventDefault();
 
     setIsAll(0);
+
     for (const file of files) {
       toast(file.file.name + "yükleniyor");
-      upload(file.file);
+      await upload(file.file);
     }
+
+    // Call the mutation to create a new post
+    mutation.mutate({
+      props: {
+        title: titleRef.current.value,
+        content: content,
+        materials: uploadedFiles,
+        sound: voice,
+        category: "uncategorized",
+        author: currentUser._id,
+      },
+    });
   };
 
   return (
     <>
-      {currentUser && (
-        <div className="container mx-auto p-4">
+      {currentUser ? (
+        <div className="container px-24 p-4">
           <div className="container mx-auto mt-8">
             <div className="flex justify-center mb-4">
               <label className="flex flex-col items-center px-4 py-6 bg-white rounded-md shadow-md tracking-wide border border-blue cursor-pointer hover:bg-gray-200">
@@ -204,6 +227,12 @@ function Upload() {
             <ToastContainer />
           </div>
         </div>
+      ) : (
+        <>
+          <div className="flex flex-row justify-center items-center">
+            giriş yapmadan bişey paylaşamzsın moruk hadi ikile
+          </div>
+        </>
       )}
     </>
   );

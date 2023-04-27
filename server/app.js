@@ -42,9 +42,11 @@ mongoose
 //Routers
 const postRoutes = require("./routers/post")
 const authRoutes = require("./routers/auth")
+const userRoutes = require("./routers/user")
 
 app.use("/api/auth",authRoutes)
 app.use("/api/posts",postRoutes)
+app.use("/api/users",userRoutes)
 
 app.listen(PORT, () => {
   console.log(

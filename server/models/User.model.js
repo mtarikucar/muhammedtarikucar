@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-  googleId: {
-    type: String,
-  },
   email: {
     type: String,
     required: true
@@ -14,6 +11,11 @@ const UserSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
+  },
+  gender: {
+    type: String,
+    enum:[`male`,`female`,`not selected`],
+    default: "not selected"
   },
   bio: {
     type: String,

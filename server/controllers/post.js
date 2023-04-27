@@ -16,6 +16,7 @@ async function addPost(req, res, next) {
     if (data) return res.json({ msg: "Message added successfully." });
     else return res.json({ msg: "Failed to add message to the database" });
   } catch (er) {
+    console.log(er);
     next(er);
   }
 }
@@ -38,7 +39,7 @@ async function getPostByUserId(req, res, next) {
     const userId = req.params.id;
     
     const posts = await Posts.find({ author: userId });
-    console.log(posts);
+    /* console.log(posts); */
     
     res.json(posts);
   } catch (er) {
