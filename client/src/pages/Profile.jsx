@@ -29,8 +29,8 @@ function Profile() {
   }
 
   return (
-    <div className="flex flex-row justify-center items-center">
-      <div className="grid grid-cols-3 w-3/4 gap-4">
+    <div className="flex flex-row justify-center h-full items-center">
+      <div className="grid grid-cols-3  w-3/4 gap-4 content-center mt-24">
         <div className="col-span-1">
           <ProfileCart />
         </div>
