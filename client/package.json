@@ -11,6 +11,8 @@
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^36.0.1",
     "@ckeditor/ckeditor5-react": "^5.1.0",
+    "@headlessui/react": "^1.7.14",
+    "@heroicons/react": "^2.0.17",
     "@reduxjs/toolkit": "^1.9.3",
     "@tanstack/react-query": "^4.29.5",
     "axios": "^1.2.5",
