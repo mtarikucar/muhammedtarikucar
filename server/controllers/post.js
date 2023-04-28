@@ -23,8 +23,28 @@ async function addPost(req, res, next) {
 
 async function getPost(req, res) {
   try {
+    const { category, userId } = req.query;
+
+    const {id} = req.params // Destructuring the query parameters from the request
+    console.log();
+    let whereClause = {}; // Initializing an empty where clause object for the Sequelize query
+
+    // If a category is provided in the query, add it to the where clause
+    if (category) {
+      whereClause.category = category;
+    }
+
+    // If a user ID is provided in the query, add it to the where clause
+    if (id) {
+      whereClause._id = id;
+    }
+
+    if (userId) {
+      whereClause.author = userId;
+    }
+
     console.log("get isteiği alındı");
-    const posts = await Posts.find();
+    const posts = await Posts.find(whereClause);
     
     res.json(posts);
   } catch (er) {
@@ -34,20 +54,7 @@ async function getPost(req, res) {
   }
 }
 
-async function getPostByUserId(req, res, next) {
-  try {
-    const userId = req.params.id;
-    
-    const posts = await Posts.find({ author: userId });
-    /* console.log(posts); */
-    
-    res.json(posts);
-  } catch (er) {
-    console.log(er);
-    console.log("get isteği hatası:", er);
-    next(er);
-  }
-}
+
 
 async function deletePost(req, res, next) {
   try {
@@ -92,4 +99,4 @@ async function updatePost(req, res, next) {
   }
 }
 
-module.exports = { addPost, getPost, updatePost, deletePost, getPostByUserId };
+module.exports = { addPost, getPost, updatePost, deletePost };

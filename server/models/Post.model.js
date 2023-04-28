@@ -6,11 +6,11 @@ const productSchema = new Schema(
   {
     title: {
       type: String,
-      
+      required: true
     },
     content: {
       type: String,
-
+      required: true
     },
     materials:{
       type: Array,

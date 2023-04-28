@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 import { FiUpload } from "react-icons/fi";
-import {
-  getStorage,
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
-import app from "../../firebase";
+  import {
+    getStorage,
+    ref,
+    uploadBytesResumable,
+    getDownloadURL,
+  } from "firebase/storage";
+  import app from "../../firebase";
 
 import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -48,9 +48,10 @@ function Upload() {
 
   const mutation = useMutation(
     async (props) => {
+
       const response = await axios.post(
         "http://localhost:3000/api/posts",
-        props,
+        props.props,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -66,10 +67,12 @@ function Upload() {
       onSuccess: () => {
         queryClient.invalidateQueries("posts"); // Invalidate 'posts' query to refetch data and update the UI
         navigate(`/Profile/${currentUser._id}`); // Navigate to the user's profile after a successful post creation
+    
+
       },
-      onError: (er)=>{
+      onError: (er) => {
         console.log(er);
-      }
+      },
     }
   );
 
@@ -135,6 +138,17 @@ function Upload() {
         percent: 0,
         state: false,
       });
+      mutation.mutate({
+        props: {
+          title: titleRef.current.value,
+          content: content,
+          materials: uploadedFiles,
+          sound: voice,
+          category: "uncategorized",
+          author: currentUser._id,
+        },
+      });
+      
     }
     isAll && toast(isAll + " files uploaded");
   }, [isAll]);
@@ -149,82 +163,79 @@ function Upload() {
       await upload(file.file);
     }
 
-    // Call the mutation to create a new post
-    mutation.mutate({
-      props: {
-        title: titleRef.current.value,
-        content: content,
-        materials: uploadedFiles,
-        sound: voice,
-        category: "uncategorized",
-        author: currentUser._id,
-      },
-    });
+    
   };
 
   return (
     <>
       {currentUser ? (
-        <div className="container px-24 p-4">
-          <div className="container mx-auto mt-8">
-            <div className="flex justify-center mb-4">
-              <label className="flex flex-col items-center px-4 py-6 bg-white rounded-md shadow-md tracking-wide border border-blue cursor-pointer hover:bg-gray-200">
-                {prog && prog.state == true ? (
-                  prog.percent
-                ) : (
-                  <>
-                    <FiUpload className="w-8 h-8 mb-2" />
-                    <span className="text-base leading-normal">
-                      Choose files
-                    </span>
-                    <input
-                      type="file"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                      multiple
-                    />
-                  </>
-                )}
-              </label>
-            </div>
-            <div className="grid grid-cols-3 gap-4 bg-transparent">
-              {files.map((file) => (
-                <div
-                  key={file.id}
-                  className="relative rounded-xl bg-transparent"
-                >
-                  <img
-                    src={file.url}
-                    alt={file.file.name}
-                    className="w-full h-auto  rounded-xl bg-transparent"
-                  />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40">
-                    <span className="text-white">{file.file.name}</span>
-                  </div>
+        <div className="container p-4 w-3/4 h-screen flex justify-center items-center md:w-full md:px-24 sm:px-12">
+          <div className="container mx-auto mt-8 ">
+            <div className="grid grid-cols-2 md:grid-cols-1">
+              <div className="col-span-1">
+                <div className="flex justify-center mb-4">
+                  <label className="flex flex-col items-center px-4 py-6 bg-white rounded-md shadow-md tracking-wide border border-blue cursor-pointer hover:bg-gray-200">
+                    {prog && prog.state == true ? (
+                      prog.percent
+                    ) : (
+                      <>
+                        <FiUpload className="w-8 h-8 mb-2" />
+                        <span className="text-base leading-normal">
+                          Choose files
+                        </span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={handleFileUpload}
+                          multiple
+                        />
+                      </>
+                    )}
+                  </label>
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-row items-center justify-center">
-            <input
-              className="border-2 p-2 m-4 rounded-md border-gray-300 focus:backdrop-blur-xl "
-              type="text"
-              name="title"
-              id="title"
-              ref={titleRef}
-              placeholder={"başlık buraya"}
-            />
-          </div>
-          <RichTextEditor setContent={setContent} />
-          <div className="flex flex-row justify-center mx-auto">
-            <button
-              className=" border-4 rounded-md px-4 border-gray-500 hover:bg-gray-500 hover:text-white ease-in-out duration-300"
-              onClick={handleClick}
-            >
-              share
-            </button>
+                <div className="grid grid-cols-3 gap-4 bg-transparent">
+                  {files.map((file) => (
+                    <div
+                      key={file.id}
+                      className="relative rounded-xl bg-transparent"
+                    >
+                      <img
+                        src={file.url}
+                        alt={file.file.name}
+                        className="w-full h-auto  rounded-xl bg-transparent"
+                      />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40">
+                        <span className="text-white">{file.file.name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            <ToastContainer />
+              <div className="col-span-1">
+                <div className="flex flex-row items-center justify-center">
+                  <input
+                    className="border-2 p-2 m-4 rounded-md border-gray-300 focus:backdrop-blur-xl "
+                    type="text"
+                    name="title"
+                    id="title"
+                    ref={titleRef}
+                    placeholder={"başlık buraya"}
+                  />
+                </div>
+                <RichTextEditor setContent={setContent} />
+                <div className="flex flex-row justify-end md:justify-center ">
+                  <button
+                    className=" border-4 rounded-md px-4 border-gray-500 hover:bg-gray-500 hover:text-white ease-in-out duration-300"
+                    onClick={handleClick}
+                  >
+                    share
+                  </button>
+
+                  <ToastContainer />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (

@@ -4,14 +4,9 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { MdArrowRight, MdArrowLeft } from "react-icons/md";
 
 function Post({ post }) {
-  /*     const audioRef = useRef();
-  const [isPlaying, setIsPlaying] = useState(false);
 
-  useEffect(() => {
-    audioRef.current;
-    isPlaying == true ? audioRef.current.play() : audioRef.current.pause();
-  }, [isPlaying]);
- */
+console.log(post);
+
   return (
     <>
       <article className="rounded-xl bg-white p-4 ring ring-indigo-50 sm:p-6 lg:p-8">
@@ -35,17 +30,15 @@ function Post({ post }) {
             </strong>
 
             <h3 className="mt-4 text-lg font-medium sm:text-xl">
-              <a href="" className="hover:underline">
-                {" "}
-                Some Interesting Podcast Title{" "}
-              </a>
+              <NavLink to={`/Blog/${post._id}`}>
+                {post.title}
+              </NavLink>
             </h3>
 
             <p className="mt-1 text-sm text-gray-700">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ipsam
-              nulla amet voluptatum sit rerum, atque, quo culpa ut
-              necessitatibus eius suscipit eum accusamus, aperiam voluptas
-              exercitationem facere aliquid fuga. Sint.
+            <div
+              dangerouslySetInnerHTML={{ __html: post && post.content }}
+            ></div>
             </p>
 
             <div className="mt-4 sm:flex sm:items-center sm:gap-2">
@@ -65,7 +58,7 @@ function Post({ post }) {
                   ></path>
                 </svg>
 
-                <p className="text-xs font-medium">48:32 minutes</p>
+                <p className="text-xs font-medium">{post.category}</p>
               </div>
 
               <span className="hidden sm:block" aria-hidden="true">

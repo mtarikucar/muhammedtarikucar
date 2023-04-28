@@ -12,7 +12,7 @@ function Home() {
       <div
         className={`portfolio bg-[#191825]  ease-in duration-700  ${
           state == 1
-            ? "w-11/12 hover: w-11/12"
+            ? "w-11/12 hover:w-11/12"
             : state == null
             ? "w-1/2 hover:w-4/6"
             : "w-1/6 hover:w-1/3"
@@ -71,7 +71,7 @@ function Home() {
       <div
         className={`portfolio bg-white  ease-in duration-700  ${
           state == 0
-            ? "w-11/12 hover: w-11/12"
+            ? "w-11/12 hover:w-11/12"
             : state == null
             ? "w-1/2 hover:w-4/6"
             : "w-1/6 hover:w-1/3"

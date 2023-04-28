@@ -2,26 +2,26 @@ import React from "react";
 
 function Community() {
   return (
-    <div class="h-full -200 p-8 px-48 grid grid-cols-3 gap-8">
+    <div className="h-full -200 p-8 px-48 grid grid-cols-3 gap-8">
       <div className="col-span-1">
-        <div class="bg-white rounded-lg shadow-xl pb-8 ">
-          <div class="w-full h-[250px]">
+        <div className="bg-white rounded-lg shadow-xl pb-8 ">
+          <div className="w-full h-[250px]">
             <img
               src="https://vojislavd.com/ta-template-demo/assets/img/profile-background.jpg"
-              class="w-full h-full rounded-tl-lg rounded-tr-lg"
+              className="w-full h-full rounded-tl-lg rounded-tr-lg"
             />
           </div>
-          <div class="flex flex-col items-center -mt-20">
+          <div className="flex flex-col items-center -mt-20">
             <img
               src="https://vojislavd.com/ta-template-demo/assets/img/profile.jpg"
-              class="w-40 border-4 border-white rounded-full"
+              className="w-40 border-4 border-white rounded-full"
             />
-            <div class="flex items-center space-x-2 mt-2">
-              <p class="text-2xl">Amanda Ross</p>
-              <span class="bg-blue-500 rounded-full p-1" title="Verified">
+            <div className="flex items-center space-x-2 mt-2">
+              <p className="text-2xl">Amanda Ross</p>
+              <span className="bg-blue-500 rounded-full p-1" title="Verified">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="text-gray-100 h-2.5 w-2.5"
+                  className="text-gray-100 h-2.5 w-2.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -35,17 +35,17 @@ function Community() {
                 </svg>
               </span>
             </div>
-            <p class="text-gray-700">
+            <p className="text-gray-700">
               Senior Software Engineer at Tailwind CSS
             </p>
-            <p class="text-sm text-gray-500">New York, USA</p>
+            <p className="text-sm text-gray-500">New York, USA</p>
           </div>
-          <div class="flex-1 flex flex-col items-center lg:items-end justify-end px-8 mt-2">
-            <div class="flex items-center space-x-4 mt-2">
-              <button class="flex items-center bg-blue-600 hover:bg-blue-700 text-gray-100 px-4 py-2 rounded text-sm space-x-2 transition duration-100">
+          <div className="flex-1 flex flex-col items-center lg:items-end justify-end px-8 mt-2">
+            <div className="flex items-center space-x-4 mt-2">
+              <button className="flex items-center bg-blue-600 hover:bg-blue-700 text-gray-100 px-4 py-2 rounded text-sm space-x-2 transition duration-100">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
+                  className="h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -53,10 +53,10 @@ function Community() {
                 </svg>
                 <span>Connect</span>
               </button>
-              <button class="flex items-center bg-blue-600 hover:bg-blue-700 text-gray-100 px-4 py-2 rounded text-sm space-x-2 transition duration-100">
+              <button className="flex items-center bg-blue-600 hover:bg-blue-700 text-gray-100 px-4 py-2 rounded text-sm space-x-2 transition duration-100">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
+                  className="h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -71,111 +71,111 @@ function Community() {
             </div>
           </div>
         </div>
-        <div class="flex-1 bg-white rounded-lg shadow-xl mt-4 p-8">
-          <h4 class="text-xl text-gray-900 font-bold">Activity log</h4>
-          <div class="relative px-4">
-            <div class="absolute h-full border border-dashed border-opacity-20 border-secondary"></div>
+        <div className="flex-1 bg-white rounded-lg shadow-xl mt-4 p-8">
+          <h4 className="text-xl text-gray-900 font-bold">Activity log</h4>
+          <div className="relative px-4">
+            <div className="absolute h-full border border-dashed border-opacity-20 border-secondary"></div>
 
-            <div class="flex items-center w-full my-6 -ml-1.5">
-              <div class="w-1/12 z-10">
-                <div class="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
+            <div className="flex items-center w-full my-6 -ml-1.5">
+              <div className="w-1/12 z-10">
+                <div className="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
               </div>
-              <div class="w-11/12">
-                <p class="text-sm">Profile informations changed.</p>
-                <p class="text-xs text-gray-500">3 min ago</p>
+              <div className="w-11/12">
+                <p className="text-sm">Profile informations changed.</p>
+                <p className="text-xs text-gray-500">3 min ago</p>
               </div>
             </div>
 
-            <div class="flex items-center w-full my-6 -ml-1.5">
-              <div class="w-1/12 z-10">
-                <div class="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
+            <div className="flex items-center w-full my-6 -ml-1.5">
+              <div className="w-1/12 z-10">
+                <div className="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
               </div>
-              <div class="w-11/12">
-                <p class="text-sm">
+              <div className="w-11/12">
+                <p className="text-sm">
                   Connected with{" "}
-                  <a href="#" class="text-blue-600 font-bold">
+                  <a href="#" className="text-blue-600 font-bold">
                     Colby Covington
                   </a>
                   .
                 </p>
-                <p class="text-xs text-gray-500">15 min ago</p>
+                <p className="text-xs text-gray-500">15 min ago</p>
               </div>
             </div>
 
-            <div class="flex items-center w-full my-6 -ml-1.5">
-              <div class="w-1/12 z-10">
-                <div class="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
+            <div className="flex items-center w-full my-6 -ml-1.5">
+              <div className="w-1/12 z-10">
+                <div className="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
               </div>
-              <div class="w-11/12">
-                <p class="text-sm">
+              <div className="w-11/12">
+                <p className="text-sm">
                   Invoice{" "}
-                  <a href="#" class="text-blue-600 font-bold">
+                  <a href="#" className="text-blue-600 font-bold">
                     #4563
                   </a>{" "}
                   was created.
                 </p>
-                <p class="text-xs text-gray-500">57 min ago</p>
+                <p className="text-xs text-gray-500">57 min ago</p>
               </div>
             </div>
 
-            <div class="flex items-center w-full my-6 -ml-1.5">
-              <div class="w-1/12 z-10">
-                <div class="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
+            <div className="flex items-center w-full my-6 -ml-1.5">
+              <div className="w-1/12 z-10">
+                <div className="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
               </div>
-              <div class="w-11/12">
-                <p class="text-sm">
+              <div className="w-11/12">
+                <p className="text-sm">
                   Message received from{" "}
-                  <a href="#" class="text-blue-600 font-bold">
+                  <a href="#" className="text-blue-600 font-bold">
                     Cecilia Hendric
                   </a>
                   .
                 </p>
-                <p class="text-xs text-gray-500">1 hour ago</p>
+                <p className="text-xs text-gray-500">1 hour ago</p>
               </div>
             </div>
 
-            <div class="flex items-center w-full my-6 -ml-1.5">
-              <div class="w-1/12 z-10">
-                <div class="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
+            <div className="flex items-center w-full my-6 -ml-1.5">
+              <div className="w-1/12 z-10">
+                <div className="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
               </div>
-              <div class="w-11/12">
-                <p class="text-sm">
+              <div className="w-11/12">
+                <p className="text-sm">
                   New order received{" "}
-                  <a href="#" class="text-blue-600 font-bold">
+                  <a href="#" className="text-blue-600 font-bold">
                     #OR9653
                   </a>
                   .
                 </p>
-                <p class="text-xs text-gray-500">2 hours ago</p>
+                <p className="text-xs text-gray-500">2 hours ago</p>
               </div>
             </div>
 
-            <div class="flex items-center w-full my-6 -ml-1.5">
-              <div class="w-1/12 z-10">
-                <div class="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
+            <div className="flex items-center w-full my-6 -ml-1.5">
+              <div className="w-1/12 z-10">
+                <div className="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
               </div>
-              <div class="w-11/12">
-                <p class="text-sm">
+              <div className="w-11/12">
+                <p className="text-sm">
                   Message received from{" "}
-                  <a href="#" class="text-blue-600 font-bold">
+                  <a href="#" className="text-blue-600 font-bold">
                     Jane Stillman
                   </a>
                   .
                 </p>
-                <p class="text-xs text-gray-500">2 hours ago</p>
+                <p className="text-xs text-gray-500">2 hours ago</p>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div className="col-span-2">
-        <div class="bg-white rounded-lg shadow-xl p-8">
-          <div class="flex items-center justify-between">
-            <h4 class="text-xl text-gray-900 font-bold">Connections (532)</h4>
+        <div className="bg-white rounded-lg shadow-xl p-8">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xl text-gray-900 font-bold">Connections (532)</h4>
             <a href="#" title="View All">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 text-gray-500 hover:text-gray-700"
+                className="h-6 w-6 text-gray-500 hover:text-gray-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -189,146 +189,146 @@ function Community() {
               </svg>
             </a>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-8 mt-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-8 mt-8">
             <a
               href="#"
-              class="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
+              className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
               title="View Profile"
             >
               <img
                 src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection1.jpg"
-                class="w-16 rounded-full"
+                className="w-16 rounded-full"
               />
-              <p class="text-center font-bold text-sm mt-1">Diane Aguilar</p>
-              <p class="text-xs text-gray-500 text-center">
+              <p className="text-center font-bold text-sm mt-1">Diane Aguilar</p>
+              <p className="text-xs text-gray-500 text-center">
                 UI/UX Design at Upwork
               </p>
             </a>
             <a
               href="#"
-              class="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
+              className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
               title="View Profile"
             >
               <img
                 src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection2.jpg"
-                class="w-16 rounded-full"
+                className="w-16 rounded-full"
               />
-              <p class="text-center font-bold text-sm mt-1">Frances Mather</p>
-              <p class="text-xs text-gray-500 text-center">
+              <p className="text-center font-bold text-sm mt-1">Frances Mather</p>
+              <p className="text-xs text-gray-500 text-center">
                 Software Engineer at Facebook
               </p>
             </a>
             <a
               href="#"
-              class="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
+              className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
               title="View Profile"
             >
               <img
                 src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection3.jpg"
-                class="w-16 rounded-full"
+                className="w-16 rounded-full"
               />
-              <p class="text-center font-bold text-sm mt-1">Carlos Friedrich</p>
-              <p class="text-xs text-gray-500 text-center">
+              <p className="text-center font-bold text-sm mt-1">Carlos Friedrich</p>
+              <p className="text-xs text-gray-500 text-center">
                 Front-End Developer at Tailwind CSS
               </p>
             </a>
             <a
               href="#"
-              class="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
+              className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
               title="View Profile"
             >
               <img
                 src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection4.jpg"
-                class="w-16 rounded-full"
+                className="w-16 rounded-full"
               />
-              <p class="text-center font-bold text-sm mt-1">Donna Serrano</p>
-              <p class="text-xs text-gray-500 text-center">
+              <p className="text-center font-bold text-sm mt-1">Donna Serrano</p>
+              <p className="text-xs text-gray-500 text-center">
                 System Engineer at Tesla
               </p>
             </a>
             <a
               href="#"
-              class="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
+              className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
               title="View Profile"
             >
               <img
                 src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection5.jpg"
-                class="w-16 rounded-full"
+                className="w-16 rounded-full"
               />
-              <p class="text-center font-bold text-sm mt-1">Randall Tabron</p>
-              <p class="text-xs text-gray-500 text-center">
+              <p className="text-center font-bold text-sm mt-1">Randall Tabron</p>
+              <p className="text-xs text-gray-500 text-center">
                 Software Developer at Upwork
               </p>
             </a>
 
             <a
               href="#"
-              class="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
+              className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
               title="View Profile"
             >
               <img
                 src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection15.jpg"
-                class="w-16 rounded-full"
+                className="w-16 rounded-full"
               />
-              <p class="text-center font-bold text-sm mt-1">Jennifer Schultz</p>
-              <p class="text-xs text-gray-500 text-center">
+              <p className="text-center font-bold text-sm mt-1">Jennifer Schultz</p>
+              <p className="text-xs text-gray-500 text-center">
                 Project Manager at Google
               </p>
             </a>
             <a
               href="#"
-              class="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
+              className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
               title="View Profile"
             >
               <img
                 src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection16.jpg"
-                class="w-16 rounded-full"
+                className="w-16 rounded-full"
               />
-              <p class="text-center font-bold text-sm mt-1">Joseph Marlatt</p>
-              <p class="text-xs text-gray-500 text-center">
+              <p className="text-center font-bold text-sm mt-1">Joseph Marlatt</p>
+              <p className="text-xs text-gray-500 text-center">
                 Team Lead at Facebook
               </p>
             </a>
           </div>
         </div>
-        <div class="mt-4 flex flex-col 2xl:flex-row space-y-4 2xl:space-y-0 2xl:space-x-4">
-          <div class="w-full flex flex-col 2xl:w-1/3">
-            <div class="flex-1 bg-white rounded-lg shadow-xl p-8">
-              <h4 class="text-xl text-gray-900 font-bold">community Info</h4>
-              <ul class="mt-2 text-gray-700">
-                <li class="flex border-y py-2">
-                  <span class="font-bold w-24">Full name:</span>
-                  <span class="text-gray-700">Amanda S. Ross</span>
+        <div className="mt-4 flex flex-col 2xl:flex-row space-y-4 2xl:space-y-0 2xl:space-x-4">
+          <div className="w-full flex flex-col 2xl:w-1/3">
+            <div className="flex-1 bg-white rounded-lg shadow-xl p-8">
+              <h4 className="text-xl text-gray-900 font-bold">community Info</h4>
+              <ul className="mt-2 text-gray-700">
+                <li className="flex border-y py-2">
+                  <span className="font-bold w-24">Full name:</span>
+                  <span className="text-gray-700">Amanda S. Ross</span>
                 </li>
-                <li class="flex border-b py-2">
-                  <span class="font-bold w-24">Birthday:</span>
-                  <span class="text-gray-700">24 Jul, 1991</span>
+                <li className="flex border-b py-2">
+                  <span className="font-bold w-24">Birthday:</span>
+                  <span className="text-gray-700">24 Jul, 1991</span>
                 </li>
-                <li class="flex border-b py-2">
-                  <span class="font-bold w-24">Joined:</span>
-                  <span class="text-gray-700">10 Jan 2022 (25 days ago)</span>
+                <li className="flex border-b py-2">
+                  <span className="font-bold w-24">Joined:</span>
+                  <span className="text-gray-700">10 Jan 2022 (25 days ago)</span>
                 </li>
-                <li class="flex border-b py-2">
-                  <span class="font-bold w-24">Mobile:</span>
-                  <span class="text-gray-700">(123) 123-1234</span>
+                <li className="flex border-b py-2">
+                  <span className="font-bold w-24">Mobile:</span>
+                  <span className="text-gray-700">(123) 123-1234</span>
                 </li>
-                <li class="flex border-b py-2">
-                  <span class="font-bold w-24">Email:</span>
-                  <span class="text-gray-700">amandaross@example.com</span>
+                <li className="flex border-b py-2">
+                  <span className="font-bold w-24">Email:</span>
+                  <span className="text-gray-700">amandaross@example.com</span>
                 </li>
-                <li class="flex border-b py-2">
-                  <span class="font-bold w-24">Location:</span>
-                  <span class="text-gray-700">New York, US</span>
+                <li className="flex border-b py-2">
+                  <span className="font-bold w-24">Location:</span>
+                  <span className="text-gray-700">New York, US</span>
                 </li>
-                <li class="flex border-b py-2">
-                  <span class="font-bold w-24">Languages:</span>
-                  <span class="text-gray-700">English, Spanish</span>
+                <li className="flex border-b py-2">
+                  <span className="font-bold w-24">Languages:</span>
+                  <span className="text-gray-700">English, Spanish</span>
                 </li>
-                <li class="flex items-center border-b py-2 space-x-2">
-                  <span class="font-bold w-24">Elsewhere:</span>
+                <li className="flex items-center border-b py-2 space-x-2">
+                  <span className="font-bold w-24">Elsewhere:</span>
                   <a href="#" title="Facebook">
                     <svg
-                      class="w-5 h-5"
+                      className="w-5 h-5"
                       id="Layer_1"
                       data-name="Layer 1"
                       xmlns="http://www.w3.org/2000/svg"
@@ -336,18 +336,18 @@ function Community() {
                     >
                       <defs></defs>
                       <path
-                        class="cls-1"
+                        className="cls-1"
                         d="M506.86,253.43C506.86,113.46,393.39,0,253.43,0S0,113.46,0,253.43C0,379.92,92.68,484.77,213.83,503.78V326.69H149.48V253.43h64.35V197.6c0-63.52,37.84-98.6,95.72-98.6,27.73,0,56.73,5,56.73,5v62.36H334.33c-31.49,0-41.3,19.54-41.3,39.58v47.54h70.28l-11.23,73.26H293V503.78C414.18,484.77,506.86,379.92,506.86,253.43Z"
                       ></path>
                       <path
-                        class="cls-2"
+                        className="cls-2"
                         d="M352.08,326.69l11.23-73.26H293V205.89c0-20,9.81-39.58,41.3-39.58h31.95V104s-29-5-56.73-5c-57.88,0-95.72,35.08-95.72,98.6v55.83H149.48v73.26h64.35V503.78a256.11,256.11,0,0,0,79.2,0V326.69Z"
                       ></path>
                     </svg>
                   </a>
                   <a href="#" title="Twitter">
                     <svg
-                      class="w-5 h-5"
+                      className="w-5 h-5"
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 333333 333333"
                       shape-rendering="geometricPrecision"
@@ -364,7 +364,7 @@ function Community() {
                   </a>
                   <a href="#" title="LinkedIn">
                     <svg
-                      class="w-5 h-5"
+                      className="w-5 h-5"
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 333333 333333"
                       shape-rendering="geometricPrecision"
@@ -381,7 +381,7 @@ function Community() {
                   </a>
                   <a href="#" title="Github">
                     <svg
-                      class="w-5 h-5"
+                      className="w-5 h-5"
                       xmlns="http://www.w3.org/2000/svg"
                       width="0"
                       height="0"
