@@ -2,7 +2,7 @@ import React from "react";
 
 function Chat() {
   return (
-    <div className="flex  p-12 justify-center items-center">
+    <div className="flex h-screen  p-12 justify-center items-center">
       <div className="flex h-full antialiased text-gray-800 w-3/4">
         <div className="flex flex-row h-full w-full overflow-x-hidden">
           <div className="flex flex-col py-8 pl-6 pr-2 w-64 bg-white flex-shrink-0">

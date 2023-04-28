@@ -9,7 +9,7 @@ console.log(post);
 
   return (
     <>
-      <article className="rounded-xl bg-white p-4 ring ring-indigo-50 sm:p-6 lg:p-8">
+      <article className="rounded-xl bg-white p-4 ring ring-indigo-50 mb-4 w-full">
         <div className="flex items-start sm:gap-8">
           <div
             className="grid h-20 w-20 shrink-0 place-content-center rounded-full border-2 border-indigo-500 m-4"
