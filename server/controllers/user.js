@@ -1,12 +1,10 @@
 const User = require("../models/User.model");
 
-
 async function getUserById(req, res, next) {
   try {
     const userId = req.params.id;
 
     const user = await User.find({ _id: userId });
-
 
     res.json(user);
   } catch (er) {
@@ -18,9 +16,7 @@ async function getUserById(req, res, next) {
 
 async function getAllUser(req, res) {
   try {
-
     const users = await User.find();
-
 
     res.json(users);
   } catch (er) {
@@ -32,18 +28,29 @@ async function getAllUser(req, res) {
 
 async function updateUserById(req, res, next) {
   try {
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404).json({
+        message: "User not found!",
+      });
+      return;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       {
-        name: req.body.name,
-        phone_number: req.body.phone_number,
-        image: req.body.image,
-        gender: req.body.gender,
-        bio: req.body.bio,
-        website: req.body.website,
+        name: req.body.name || user.name,
+        phone_number: req.body.phone_number || user.phone_number,
+        image: req.body.image || user.image,
+        gender: req.body.gender || user.gender,
+        bio: req.body.bio || user.bio,
+        website: req.body.website || user.website,
+        community: req.body.community || user.community
       },
       { new: true } // return the updated document
     );
+
     res.status(200).json({
       message: "User is updated successfully!",
       updatedUser,
@@ -53,36 +60,13 @@ async function updateUserById(req, res, next) {
   }
 }
 
-/* async function updateUserById(req,res,next){
-  console.log('gelfdimmmmmmmm');
-  try {
-    const updatedUser = await User.findByPk(req.params.id);
-    console.log(req.params.id);
-    updatedUser.update({
-      name:req.body.name,
-      phone_number:req.body.phone_number,
-      image:req.body.image,
-      gender:req.body.gender,
-      bio:req.body.bio,
-      website:req.body.website
-    })
-    // updatedUser is the document after update because of new: true
-    res.status(200).json({
-      message: "User is updated successfully!",
-      updatedUser,
-    });
-  } catch (error) {
-    res.status(500).json(error);
-  }
-} */
-
 async function deleteUser(req, res) {
   try {
     const gonnaDeletedUser = await models.user.findByPk(req.params.id);
     await gonnaDeletedUser.save({
       isActive: false,
-      isDeleted: true
-    })
+      isDeleted: true,
+    });
     res.status(200).json({
       message: "User is deleted successfully!",
     });
@@ -94,7 +78,7 @@ async function deleteUser(req, res) {
 async function deleteUserPermanent(req, res) {
   try {
     const gonnaDeletedUser = await models.user.findByPk(req.params.id);
-    await gonnaDeletedUser.destroy()
+    await gonnaDeletedUser.destroy();
     res.status(200).json({
       message: "User is deleted successfully as permanently!",
     });
@@ -108,5 +92,5 @@ module.exports = {
   getAllUser,
   updateUserById,
   deleteUser,
-  deleteUserPermanent
-}
+  deleteUserPermanent,
+};

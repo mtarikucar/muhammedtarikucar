@@ -1,5 +1,6 @@
 const Community = require("../models/Community.model");
 const CommunityRequest = require("../models/CommunityRequest.model");
+const User = require("../models/User.model");
 
 async function createCommunity(req, res, next) {
   try {
@@ -9,6 +10,13 @@ async function createCommunity(req, res, next) {
     const newCommunity = new Community({ name, description, owner });
     await newCommunity.save();
 
+    await User.findByIdAndUpdate(
+      owner,
+      {
+        community: newCommunity._id,
+      },
+      { new: true } // return the updated document
+    );
     res.status(201).json(newCommunity);
   } catch (err) {
     next(err);
@@ -107,5 +115,5 @@ module.exports = {
   createCommunity,
   sendJoinRequest,
   handleJoinRequest,
-  getJoinRequests
+  getJoinRequests,
 };

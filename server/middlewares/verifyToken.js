@@ -13,7 +13,6 @@ module.exports.verifyToken = (req, res, next) => {
     /* Returns the payload if the signature is valid.
     If not, it will throw the error. */
     payload = JWT.verify(token, process.env.JWT_SECRET);
-    console.log("asdasdas",payload);
   } catch (error) {
     res.status(500).json({
       msg:"token decoder error",
