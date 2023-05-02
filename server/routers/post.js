@@ -5,7 +5,6 @@ const router = require("express").Router();
 router.get("/",getPost)
 router.get("/:id",getPost)
 router.post("/",verifyTokenAndAuth,addPost)
-router.delete("/delete/:id",verifyTokenAndAuth,deletePost)
-router.put("/update/:id",verifyTokenAndAuth,updatePost)
+router.delete("/:id",verifyTokenAndAuth,deletePost)
 
 module.exports = router

@@ -72,31 +72,5 @@ async function deletePost(req, res, next) {
   }
 }
 
-async function updatePost(req, res, next) {
-  try {
-    const postId = req.params.id; // assuming the post ID is passed in as a URL parameter
-    const { title, content, materials, sound, category } = req.body;
 
-    const updatedPost = await Posts.findByIdAndUpdate(
-      postId,
-      {
-        title: title,
-        content: content,
-        materials: materials,
-        sound: sound,
-        category: category,
-      },
-      { new: true } // to return the updated post instead of the original one
-    );
-
-    if (updatedPost) {
-      return res.json({ msg: "Post updated successfully.", post: updatedPost });
-    } else {
-      return res.json({ msg: "Post not found." });
-    }
-  } catch (er) {
-    next(er);
-  }
-}
-
-module.exports = { addPost, getPost, updatePost, deletePost };
+module.exports = { addPost, getPost, deletePost };

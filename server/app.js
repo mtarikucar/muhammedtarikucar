@@ -43,10 +43,12 @@ mongoose
 const postRoutes = require("./routers/post")
 const authRoutes = require("./routers/auth")
 const userRoutes = require("./routers/user")
+const communityRoutes = require("./routers/community")
 
 app.use("/api/auth",authRoutes)
 app.use("/api/posts",postRoutes)
 app.use("/api/users",userRoutes)
+app.use("/api/community",communityRoutes)
 
 app.listen(PORT, () => {
   console.log(

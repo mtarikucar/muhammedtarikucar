@@ -17,7 +17,7 @@ function UserUpdateModal({ isOpen, setIsOpen, children }) {
 
     const updateUser = async (userData) => {
         const response = await axios.put(`http://localhost:3000/api/users/${userId}`, userData, {
-            headers: {
+                    headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
