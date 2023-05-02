@@ -13,13 +13,13 @@ import Profile from "./pages/Profile";
 import Detail from "./pages/Detail";
 import Community from "./pages/Community";
 import Chat from "./pages/Chat";
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
     <div className="bg-gray-50">
       <Sidebars />
       <Routes>
-
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
         <Route path="/Community/:id" element={<Community />} />
@@ -29,7 +29,7 @@ function App() {
         <Route path="/Profile/:id" element={<Profile />} />
         <Route path="/Upload" element={<Upload />} />
         <Route path="/Portfolio" element={<Portfolio />} />
-        
+        <Route path="/Notifications" element={<Notifications />} />
         <Route path="/" element={<Home />} />
       </Routes>
     </div>

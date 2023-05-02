@@ -62,7 +62,7 @@ function Post({ post }) {
               </strong>
 
               <div className="">
-                {currentUser._id == post.author && (
+                {currentUser?._id == post.author && (
                   <FcFullTrash
                     onClick={() => setShowDeleteConfirmationModal(true)}
                     className={`cursor-pointer`}
