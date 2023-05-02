@@ -77,8 +77,35 @@ async function handleJoinRequest(req, res, next) {
   }
 }
 
+async function getJoinRequests(req, res, next) {
+  try {
+    const communityId = req.params.communityId;
+    const community = await Community.findById(communityId);
+
+    if (!community) {
+      return res.status(404).json({ message: "Community not found" });
+    }
+
+    if (community.owner.toString() !== req.user.id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to manage this community" });
+    }
+
+    const joinRequests = await CommunityRequest.find({
+      community: communityId,
+      status: "pending",
+    }).populate("user");
+
+    res.status(200).json(joinRequests);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   createCommunity,
   sendJoinRequest,
   handleJoinRequest,
+  getJoinRequests
 };

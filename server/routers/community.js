@@ -6,5 +6,6 @@ const {verifyTokenAndAuth} = require("../middlewares/verifyToken")
 router.post('/create', verifyTokenAndAuth, communityController.createCommunity);
 router.post('/join/:communityId', verifyTokenAndAuth, communityController.sendJoinRequest);
 router.patch('/join/:requestId', verifyTokenAndAuth, communityController.handleJoinRequest);
+router.get('/', verifyTokenAndAuth, communityController.handleJoinRequest);
 
 module.exports = router;
