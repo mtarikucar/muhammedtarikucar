@@ -13,6 +13,7 @@ const communitySchema = new Schema(
     },
     image: {
       type: String,
+      default:null,
     },
     address:{
       type:String

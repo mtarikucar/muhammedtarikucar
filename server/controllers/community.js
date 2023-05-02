@@ -1,5 +1,6 @@
 const Community = require("../models/Community.model");
 const CommunityRequest = require("../models/CommunityRequest.model");
+const User = require("../models/User.model");
 
 async function createCommunity(req, res, next) {
   try {
@@ -9,11 +10,64 @@ async function createCommunity(req, res, next) {
     const newCommunity = new Community({ name, description, owner });
     await newCommunity.save();
 
+    await User.findByIdAndUpdate(
+      owner,
+      {
+        community: newCommunity._id,
+      },
+      { new: true } // return the updated document
+    );
     res.status(201).json(newCommunity);
   } catch (err) {
     next(err);
   }
 }
+
+
+async function getCommunityById(req, res, next) {
+  try {
+    const communityId = req.params.id;
+
+    const community = await Community.find({ _id: communityId });
+    res.json(community);
+  } catch (er) {
+    console.log(er);
+    console.log("get isteği hatası:", er);
+    next(er);
+  }
+}
+
+
+async function updateCommunityById(req, res, next) {
+  try {
+    const community = await Community.findById(req.params.id);
+    if (!community) {
+      res.status(404).json({
+        message: "Community not found!",
+      });
+      return;
+    }
+
+    const updatedCommunity = await Community.findByIdAndUpdate(
+      req.params.id,
+      {
+        name: req.body.name || community.name,
+        image: req.body.image || community.image,
+        description: req.body.description || community.description
+      },
+      { new: true } // return the updated document
+    );
+
+    res.status(200).json({
+      message: "User is updated successfully!",
+      updatedCommunity,
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+}
+
+
 
 async function sendJoinRequest(req, res, next) {
   try {
@@ -104,8 +158,10 @@ async function getJoinRequests(req, res, next) {
 }
 
 module.exports = {
+  updateCommunityById,
   createCommunity,
   sendJoinRequest,
   handleJoinRequest,
-  getJoinRequests
+  getJoinRequests,
+  getCommunityById
 };

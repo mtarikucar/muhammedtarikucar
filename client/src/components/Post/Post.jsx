@@ -68,6 +68,7 @@ function Post({ post }) {
                     className={`cursor-pointer`}
                   />
                 )}
+               
               </div>
             </div>
 
@@ -106,18 +107,12 @@ function Post({ post }) {
               </span>
 
               <p className="mt-2 text-xs font-medium text-gray-500 sm:mt-0">
-                Featuring{" "}
-                <a href="#" className="underline hover:text-gray-700">
-                  Barry
-                </a>
-                ,
-                <a href="#" className="underline hover:text-gray-700">
-                  Sandra
-                </a>{" "}
-                and
-                <a href="#" className="underline hover:text-gray-700">
-                  August
-                </a>
+              
+                <NavLink
+                  to={`/Profile/${post.author}`} className="underline hover:text-gray-800 ">
+                Yazar 
+                </NavLink>
+               
               </p>
             </div>
           </div>

@@ -6,37 +6,27 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import app from "../../firebase";
+import app from "../../../firebase";
 
 
 
-function UserUpdateModal({ isOpen, setIsOpen }) {
+function CommunityUpdateModal({ communityData, openCommunityUpdateModal, setOpenCommunityUpdateModal }) {
     const { token } = useSelector((state) => state.auth);
     const { id } = useParams();
-    const userId = id;
+
 
     const updateUser = async (userData) => {
-        const response = await axios.put(`http://localhost:3000/api/users/${userId}`, userData, {
+        const response = await axios.put(`http://localhost:3000/api/community/${communityData._id}`, userData, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
         return response.data;
     };
-    const { mutate } = useMutation(updateUser);
 
-    const { data: user, isLoading } = useQuery(["user", userId], async () => {
-        const response = await axios.get(`http://localhost:3000/api/users/${userId}`);
-        const data = response.data;
-        return data[0];
-    }, {
-        onSuccess: (data) => {
-            formik.setFieldValue('name', data?.name),
-                formik.setFieldValue('email', data?.email)
-        }
-    });
 
-    const validationSchema = Yup.object().shape({
+
+   /*  const validationSchema = Yup.object().shape({
         name: Yup.string().required("Name is required"),
         email: Yup.string()
             .email("Please enter a valid email address")
@@ -47,20 +37,22 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
             }
             return value.size <= 5000000;
         }),
-    });
+    }); */
 
     const formik = useFormik({
         initialValues: {
-            name: user?.name ?? "",
-            email: user?.email ?? "",
-            image: user?.image ?? "",
+            name: communityData?.name ?? "",
+            description: communityData?.description ?? "",
+            image: communityData?.image ?? '',
         },
-        validationSchema,
+
         onSubmit: async (values) => {
             handleClick(values);
+           console.log(values);
         },
     });
 
+    const { mutate } = useMutation(updateUser);
 
     const handleClick = async (values) => {
         const imageName = "pp/" + values.image.name + new Date().getTime();
@@ -92,7 +84,7 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
                     mutate(userData, {
                         onSuccess: () => {
                             console.log("Form submitted successfully");
-                            setIsOpen(false)
+                            setOpenCommunityUpdateModal(false)
                         },
                         onError: (response) => {
                             alert("An error occured while submiting the form");
@@ -119,7 +111,6 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
         },
     });
 
-
     const [isAnimating, setIsAnimating] = useState(false);
 
     const handleTransitionEnd = () => {
@@ -128,7 +119,7 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
     return (
         <>
             {/* Overlay */}
-            {isOpen && (
+            {openCommunityUpdateModal && (
                 <div
                     className={`fixed top-0 left-0 z-10 w-screen h-screen bg-gray-900 bg-opacity-50 ${isAnimating ? "animate-fade-in" : "animate-fade-out"
                         }`}
@@ -139,7 +130,7 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
             )}
 
             {/* Modal */}
-            {isOpen && (
+            {openCommunityUpdateModal && (
                 <div
                     className={`fixed top-1/2 left-1/2 z-20 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-lg shadow-lg ${isAnimating ? "animate-slide-up" : "animate-slide-down"
                         }`}
@@ -150,7 +141,7 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
                         <button
                             type="button"
                             className="absolute -top-10 -right-6 p-2 text-gray-400 hover:text-gray-500 focus:outline-none"
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => setOpenCommunityUpdateModal(false)}
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -192,26 +183,26 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
                             </div>
                             <div className="mb-4">
                                 <label
-                                    htmlFor="email"
+                                    htmlFor="description"
                                     className="block mb-2 text-sm font-medium text-gray-700"
                                 >
-                                    Email
+                                    description
                                 </label>
                                 <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value={formik.values.email}
+                                    id="description"
+                                    name="description"
+                                    type="description"
+                                    value={formik.values.description}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    className={`${formik.touched.email && formik.errors.email
+                                    className={`${formik.touched.description && formik.errors.description
                                         ? "border-red-500"
                                         : "border-gray-300"
                                         } appearance-none block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                                     placeholder="Enter your email"
                                 />
-                                {formik.touched.email && formik.errors.email && (
-                                    <p className="mt-2 text-sm text-red-600">{formik.errors.email}</p>
+                                {formik.touched.description && formik.errors.description && (
+                                    <p className="mt-2 text-sm text-red-600">{formik.errors.description}</p>
                                 )}
                             </div>
                             <div className="mb-4">
@@ -232,18 +223,18 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
                                     }}
                                     className="appearance-none block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 />
-                                {/* {formik.touched?.image && formik.errors?.image && (
-                                    <p className="mt-2 text-sm text-red-600">{formik.errors?.image}</p>
-                                )} */}
+                                {formik.touched.image && formik.errors.image && (
+                                    <p className="mt-2 text-sm text-red-600">{formik.errors.image}</p>
+                                )}
 
                             </div>
                             <div>
                                 <button
                                     type="submit"
-                                   /*  disabled={!formik.dirty || !formik.isValid || mutation.isLoading} */
+                                    /* disabled={!formik.dirty || !formik.isValid } */
                                     className="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                                 >
-                                    {mutation.isLoading ? "Updating..." : "Update User"}
+                                  {/*   {mutation.isLoading ? "Updating..." : "Update User"} */}save
                                 </button>
                             </div>
                         </form>
@@ -255,4 +246,4 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
     );
 }
 
-export default UserUpdateModal
+export default CommunityUpdateModal

@@ -6,8 +6,6 @@ async function getUserById(req, res, next) {
     const userId = req.params.id;
 
     const user = await User.find({ _id: userId });
-
-
     res.json(user);
   } catch (er) {
     console.log(er);
@@ -32,18 +30,28 @@ async function getAllUser(req, res) {
 
 async function updateUserById(req, res, next) {
   try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404).json({
+        message: "User not found!",
+      });
+      return;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       {
-        name: req.body.name,
-        phone_number: req.body.phone_number,
-        image: req.body.image,
-        gender: req.body.gender,
-        bio: req.body.bio,
-        website: req.body.website,
+        name: req.body.name || user.name,
+        phone_number: req.body.phone_number || user.phone_number,
+        image: req.body.image || user.image,
+        gender: req.body.gender || user.gender,
+        bio: req.body.bio || user.bio,
+        website: req.body.website || user.website,
+        community: req.body.community || user.community
       },
       { new: true } // return the updated document
     );
+
     res.status(200).json({
       message: "User is updated successfully!",
       updatedUser,

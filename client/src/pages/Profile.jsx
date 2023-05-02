@@ -12,10 +12,10 @@ const fetchUser = async (userId) => {
   return response.data;
 };
 
+
 const useUser = (userId) => {
   return useQuery(['user', userId], () => fetchUser(userId), { enabled: !!userId });
 };
-
 function Profile() {
 
   const { currentUser } = useSelector(store => store.auth)

@@ -80,7 +80,7 @@ function Sidebars() {
                     </div>
                   </NavLink>
                 </li>
-                {/* currentUser.community && */ (
+                { currentUser.community &&  (
                   <li className="p-3">
                     <NavLink to={`/Community/${currentUser.community}`}>
                       <div className="sidebar-icon flex flex-row hover:drop-shadow-xl rounded border-gray-500 p-2 hover:border-blue-600 hover:bg-gray-100 group">
