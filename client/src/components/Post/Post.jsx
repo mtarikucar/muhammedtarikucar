@@ -1,14 +1,45 @@
 import { NavLink } from "react-router-dom";
-import { useRef, useState, useEffect } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { MdArrowRight, MdArrowLeft } from "react-icons/md";
+import { FcFullTrash } from "react-icons/fc";
+import { useSelector } from "react-redux";
+import { useState } from "react";
+import DeleteConfirmationModal from "../DeleteConfirmationModal";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 
 function Post({ post }) {
+  console.log(post);
+  const { currentUser,token } = useSelector((store) => store.auth);
 
-console.log(post);
+  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] =
+    useState(false);
 
+  const deletePost = async (postId) => {
+    const response = await axios.delete(`http://localhost:3000/api/posts/${postId}`,
+    
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        id: currentUser._id,
+      },
+    });
+    return response.data;
+  };
+  const deleteMutation = useMutation(deletePost);
+
+  function handleDeleteConfirmation() {
+    deleteMutation.mutate(post._id);
+    setShowDeleteConfirmationModal(false);
+  }
   return (
     <>
+      {showDeleteConfirmationModal && (
+        <DeleteConfirmationModal
+          onConfirm={handleDeleteConfirmation}
+          onCancel={() => setShowDeleteConfirmationModal(false)}
+        />
+      )}
       <article className="rounded-xl bg-white p-4 ring ring-indigo-50 mb-4 w-full">
         <div className="flex items-start sm:gap-8">
           <div
@@ -25,20 +56,29 @@ console.log(post);
           </div>
 
           <div>
-            <strong className="rounded border border-indigo-500 bg-indigo-500 px-3 py-1.5 text-[10px] font-medium text-white">
-              Episode #101
-            </strong>
+            <div className="flex flex-row justify-between">
+              <strong className="rounded border border-indigo-500 bg-indigo-500 px-3 py-1.5 text-[10px] font-medium text-white">
+                Episode #101
+              </strong>
+
+              <div className="">
+                {currentUser._id == post.author && (
+                  <FcFullTrash
+                    onClick={() => setShowDeleteConfirmationModal(true)}
+                    className={`cursor-pointer`}
+                  />
+                )}
+              </div>
+            </div>
 
             <h3 className="mt-4 text-lg font-medium sm:text-xl">
-              <NavLink to={`/Blog/${post._id}`}>
-                {post.title}
-              </NavLink>
+              <NavLink to={`/Blog/${post._id}`}>{post.title}</NavLink>
             </h3>
 
             <p className="mt-1 text-sm text-gray-700">
-            <div
-              dangerouslySetInnerHTML={{ __html: post && post.content }}
-            ></div>
+              <div
+                dangerouslySetInnerHTML={{ __html: post && post.content }}
+              ></div>
             </p>
 
             <div className="mt-4 sm:flex sm:items-center sm:gap-2">
