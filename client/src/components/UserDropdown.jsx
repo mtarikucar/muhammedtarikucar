@@ -52,7 +52,7 @@ function UserDropdown({ setIsOpen }) {
                         <Menu.Item>
                             {({ active }) => (
                                 <button
-                                    onClick={()=> dispach(logoutSuccess)}
+                                    onClick={()=> dispach(logoutSuccess()) }
                                     className={classNames(
                                         active ? 'bg-gray-100 w-full text-red-600' : 'text-red-600 w-full',
                                         'block w-full px-4 py-2  text-sm'
@@ -62,22 +62,7 @@ function UserDropdown({ setIsOpen }) {
                                 </button>
                             )}
                         </Menu.Item>
-                       {/*  <form method="POST" action="#">
-                            <Menu.Item>
-                                {({ active }) => (
-                                    <button
-                                        onClick={dispach(logoutSuccess)}
-                                        type="submit"
-                                        className={classNames(
-                                            active ? 'bg-gray-100 text-red-600' : 'text-red-600',
-                                            'block w-full px-4 py-2 text-left text-sm'
-                                        )}
-                                    >
-                                        Log out
-                                    </button>
-                                )}
-                            </Menu.Item>
-                        </form> */}
+                       
                     </div>
                 </Menu.Items>
             </Transition>

@@ -5,11 +5,12 @@ import UserUpdateModal from "./UserUpdateModal";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 
-function ProfileCart({user}) {
+function ProfileCart({ user }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const {currentUser} = useSelector(store => store.auth)
+  const { currentUser } = useSelector(store => store.auth)
 
+  user && console.log(user, 'sdbvsdbsd');
   return (
     <div>
       <UserUpdateModal isOpen={isOpen} setIsOpen={setIsOpen} />
@@ -18,14 +19,14 @@ function ProfileCart({user}) {
           <div class="flex items-center">
             <img
               class="h-14 w-14 rounded-full object-cover"
-              src="https://github.com/creativetimofficial/soft-ui-dashboard-tailwind/blob/main/build/assets/img/team-2.jpg?raw=true"
+              src={user.image}
               alt="Simon Lewis"
             />
             <div class="ml-4 w-56">
               <p class="text-slate-800 text-xl font-extrabold">
-                Richard Hendricks
+                {user.name}
               </p>
-              <p class="text-slate-500">Algorithms Expert</p>
+              <p class="text-slate-500 text-sm">{user.email}</p>
             </div>
             <UserDropdown setIsOpen={setIsOpen} />
           </div>
@@ -68,7 +69,9 @@ function ProfileCart({user}) {
             Follow
           </button>
         </div>
-        {currentUser._id == user._id && (
+        {
+        currentUser && 
+        currentUser._id == user._id && (
           <div className="w-full mb-2">
             <NavLink to={"/Upload"}>
               <div className="  flex items-center justify-center shadow-md cursor-pointer  font-semibold text-gray-500 w-full bg-clip-text hover:bg-clip-padding hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-600  rounded-md  hover:text-white  px-4 py-2 ease-in-out duration-300">

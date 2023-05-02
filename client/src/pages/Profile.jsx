@@ -5,7 +5,8 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import ProfileCart from '../components/ProfileCart';
 import Posts from '../components/Post/Posts';
-
+import { Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 const fetchUser = async (userId) => {
   const response = await axios.get(`http://localhost:3000/api/users/${userId}`);
   return response.data;
@@ -16,6 +17,8 @@ const useUser = (userId) => {
 };
 
 function Profile() {
+
+  const { currentUser } = useSelector(store => store.auth)
   const { id } = useParams();
 
   const { data: user, isLoading, isError, error } = useUser(id);
