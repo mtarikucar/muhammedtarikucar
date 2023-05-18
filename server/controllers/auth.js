@@ -42,7 +42,7 @@ async function register(req, res) {
 
 async function login(req, res) {
   const { username, password } = req.body;
-  console.log(username, password);
+  /* console.log(username, password); */
   try {
     const user = await User.findOne({
       name: username,

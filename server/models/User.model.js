@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
   },
   image: {
     type: String,
+    default:null,
   },
   gender: {
     type: String,

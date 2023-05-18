@@ -20,7 +20,7 @@ const Login = () => {
 const navigate = useNavigate()
 
   const mutation = useMutation(
-    (values) => axios.post("http://localhost:3000/api/auth/login", values),
+    (values) => axios.post("http://18.197.123.238:3000/api/auth/login", values),
     {
       onSuccess: (data) => {
         console.log(data.data);
@@ -29,9 +29,9 @@ const navigate = useNavigate()
         dispatch(loginSuccess({user: data.data.user,token: data.data.token}));
         navigate("/Blog")
       },
-      onError: () => {
+      onError: (err) => {
 
-        toast.error("Bir hata oluştu, lütfen daha sonra tekrar deneyin");
+        toast.error("Bir hata oluştu, lütfen daha sonra tekrar deneyin", err);
       },
     }
   );

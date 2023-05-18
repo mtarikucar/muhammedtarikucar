@@ -1,6 +1,5 @@
 import React from "react";
 import Posts from "../components/Post/Posts";
-import Chat from "../layouts/Chat";
 
 function Notifications() {
   return (

@@ -6,6 +6,7 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+import AudioPlayer from "../components/AudioPlayer";
 import ReactAudioPlayer from "react-audio-player";
 import { EffectCoverflow, Pagination, Navigation } from "swiper";
 
@@ -15,7 +16,7 @@ import axios from "axios";
 
 // Custom Hook
 const fetchPost = async (id) => {
-  const response = await axios.get(`http://localhost:3000/api/posts/${id}`);
+  const response = await axios.get(`http://18.197.123.238:3000/api/posts/${id}`);
   return response.data[0];
 };
 
@@ -59,19 +60,17 @@ function Detail() {
                   className="m-2"
                 />
               ) : (
-                <img src={material.url} alt="slide_image" className="m-2" />
+                <img src={material.url} alt="slide_image" className="m-2 max-h-96" />
               )}
             </>
           ))}
 
-          <div className="grid grid-rows-2 gap-4">
-            <div className="content"></div>
             {post?.sound && (
               <div className="custom-audio-player">
-                <ReactAudioPlayer src={post?.sound} autoPlay controls />
+                <AudioPlayer src={post?.sound} />
               </div>
             )}
-          </div>
+          
         </div>
         <div className="paragraph flex flex-col first-letter items-center justify-center mr-8 ">
           <p className="font-bold text-2xl mt-8 mb-2">{post && post.title}</p>

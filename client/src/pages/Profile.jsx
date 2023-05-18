@@ -8,14 +8,14 @@ import Posts from '../components/Post/Posts';
 import { Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 const fetchUser = async (userId) => {
-  const response = await axios.get(`http://localhost:3000/api/users/${userId}`);
+  const response = await axios.get(`http://18.197.123.238:3000/api/users/${userId}`);
   return response.data;
 };
+
 
 const useUser = (userId) => {
   return useQuery(['user', userId], () => fetchUser(userId), { enabled: !!userId });
 };
-
 function Profile() {
 
   const { currentUser } = useSelector(store => store.auth)
@@ -38,8 +38,9 @@ function Profile() {
           <ProfileCart user={user}/>
         </div>
         <div className="col-span-2 flex flex-col m-3 w-full justify-center items-center">
-          <div className="overflow-scroll max-h-[75vh] p-4 space-y-3 m-3  w-full ">
+          <div className="overflow-y-scroll max-h-[75vh] p-4 space-y-3 m-3  w-full scrollbar-thumb-gray-900 scrollbar-track-gray-100 scrollbar-thin ">
             <Posts userId={id}/>
+            
           </div>
         </div>
       </div>

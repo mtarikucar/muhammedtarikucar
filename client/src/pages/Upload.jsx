@@ -50,7 +50,7 @@ function Upload() {
     async (props) => {
 
       const response = await axios.post(
-        "http://localhost:3000/api/posts",
+        "http://18.197.123.238:3000/api/posts",
         props.props,
         {
           headers: {
@@ -169,11 +169,11 @@ function Upload() {
   return (
     <>
       {currentUser ? (
-        <div className="container p-4 w-3/4 h-screen flex justify-center items-center md:w-full md:px-24 sm:px-12">
+        <div className="container p-4 w-3/4 h-screen flex justify-center items-center md:w-full md:px-24 sm:px-12 ">
           <div className="container mx-auto mt-8 ">
-            <div className="grid grid-cols-2 md:grid-cols-1 gap-4 ">
-              <div className="col-span-1 border-2 rounded-lg p-4">
-                <div className="flex justify-center mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-4  ">
+              <div className="col-span-1 border-2 rounded-lg p-4 ">
+                <div className="flex justify-center mb-4 ">
                   <label className="flex flex-col items-center px-4 py-6 bg-white rounded-md shadow-md tracking-wide border border-blue cursor-pointer hover:bg-gray-200">
                     {prog && prog.state == true ? (
                       prog.percent

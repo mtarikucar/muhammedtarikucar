@@ -21,7 +21,7 @@ function Posts({ userId, category }) {
         params.category = category;
       }
 
-      return axios.get("http://localhost:3000/api/posts", { params }).then((res) => res.data);
+      return axios.get("http://18.197.123.238:3000/api/posts", { params }).then((res) => res.data);
     },
     {
       refetchOnWindowFocus: false,

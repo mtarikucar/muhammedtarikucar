@@ -5,7 +5,6 @@ async function getUserById(req, res, next) {
     const userId = req.params.id;
 
     const user = await User.find({ _id: userId });
-
     res.json(user);
   } catch (er) {
     console.log(er);
@@ -28,7 +27,6 @@ async function getAllUser(req, res) {
 
 async function updateUserById(req, res, next) {
   try {
-
     const user = await User.findById(req.params.id);
     if (!user) {
       res.status(404).json({

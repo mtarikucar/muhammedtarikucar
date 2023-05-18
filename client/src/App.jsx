@@ -1,10 +1,14 @@
-import Home from "./pages/Home";
-
-import Portfolio from "./pages/Portfolio";
-
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route,NavLink } from "react-router-dom";
+
+
+
 import Sidebars from "./layouts/Sidebars";
+
+
+
+import Home from "./pages/Home";
+import Portfolio from "./pages/Portfolio";
 import Blog from "./pages/Blog";
 import Upload from "./pages/Upload";
 import Register from "./pages/Register";
@@ -14,6 +18,7 @@ import Detail from "./pages/Detail";
 import Community from "./pages/Community";
 import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
+import Todos from "./pages/Todos";
 
 function App() {
   return (
@@ -30,8 +35,14 @@ function App() {
         <Route path="/Upload" element={<Upload />} />
         <Route path="/Portfolio" element={<Portfolio />} />
         <Route path="/Notifications" element={<Notifications />} />
+        <Route path="/Todos" element={<Todos />} />
         <Route path="/" element={<Home />} />
       </Routes>
+      <NavLink to={"/Todos"}>
+        <pre className="fixed bottom-2 left-2 text-gray-400 text-sm cursor-copy">
+          @beta-0.0/muhammedtarikucar.com
+        </pre>
+      </NavLink>
     </div>
   );
 }

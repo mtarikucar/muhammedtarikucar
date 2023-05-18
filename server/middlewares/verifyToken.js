@@ -3,7 +3,7 @@ const JWT = require('jsonwebtoken');
 
 module.exports.verifyToken = (req, res, next) => {
   const authorization = req.get('Authorization');
-  
+
   !authorization && res.status(400).json({ message: 'Not authenticated!' });
   
   const token = authorization.split(' ')[1];
@@ -36,7 +36,7 @@ module.exports.verifyTokenAndAuth = (req, res, next) => {
 
 module.exports.verifyIsAdmin = (req, res, next) => {
   this.verifyToken(req, res, () => {
-    console.log(req.params);
+    /* console.log(req.params); */
     if (req.user.id === req.params.id || req.user.role == "admin" ) {
       next();
     } else {

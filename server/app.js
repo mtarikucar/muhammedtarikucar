@@ -21,6 +21,10 @@ var allowlist = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://18.197.123.238",
+  "www.muhammedtarikucar.com",
+  "muhammedtarikucar.com",
+  "http://muhammedtarikucar.com",
+  "http://www.muhammedtarikucar.com",
 ];
 var corsOptionsDelegate = function (req, callback) {
   var corsOptions;
@@ -57,35 +61,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/community", communityRoutes);
-
-// Socket.IO configuration
-io.on("connection", (socket) => {
-  console.log("A user connected");
-
-  socket.on("joinRoom", ({ username, room }) => {
-    
-    socket.join(room) ;
-
-    socket.emit("message", {
-      user: "Admin",
-      text: `${username}, hoşgeldiniz!`,
-    });
-
-    socket.broadcast.to(room).emit("message", {
-      user: "Admin",
-      text: `${username}, odaya katıldı.`,
-    });
-
-    socket.on("sendMessage", (message) => {
-      console.log(message);
-      io.to(room).emit("message", { user: username, text: message });
-    });
-  });
-
-  socket.on("disconnect", () => {
-    console.log("A user disconnected");
-  });
-});
 
 server.listen(PORT, () => {
   console.log(

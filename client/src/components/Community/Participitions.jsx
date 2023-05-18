@@ -1,10 +1,56 @@
 import React from "react";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
+
+const getCommunityMembers = async (communityId, token) => {
+  const { data } = await axios.get(
+    `http://18.197.123.238:3000/api/community/${communityId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return data;
+};
+
+function useCommunityMembers(communityId, token) {
+  return useQuery(
+    ["communityMembers", communityId],
+    () => getCommunityMembers(communityId, token),
+    {
+      onSuccess: (data) => {
+        console.log(data);
+      },
+      onError: (data) => {
+        console.log(communityId);
+      },
+    }
+  );
+}
 
 function Participitions() {
+  const { token, currentUser } = useSelector((store) => store.auth);
+
+  const {
+    data: communityMembers,
+    isLoading,
+    isError,
+    error,
+  } = useCommunityMembers(currentUser.community, token);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError) {
+    return <div>Error: {error.message}</div>;
+  }
   return (
     <div className="bg-white rounded-lg shadow-xl p-8">
       <div className="flex items-center justify-between">
-        <h4 className="text-xl text-gray-900 font-bold">Connections (532)</h4>
+        <h4 className="text-xl text-gray-900 font-bold">participitions</h4>
         <a href="#" title="View All">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -23,105 +69,22 @@ function Participitions() {
         </a>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-8 mt-8">
-        <a
-          href="#"
-          className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
-          title="View Profile"
-        >
-          <img
-            src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection1.jpg"
-            className="w-16 rounded-full"
-          />
-          <p className="text-center font-bold text-sm mt-1">Diane Aguilar</p>
-          <p className="text-xs text-gray-500 text-center">
-            UI/UX Design at Upwork
-          </p>
-        </a>
-        <a
-          href="#"
-          className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
-          title="View Profile"
-        >
-          <img
-            src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection2.jpg"
-            className="w-16 rounded-full"
-          />
-          <p className="text-center font-bold text-sm mt-1">Frances Mather</p>
-          <p className="text-xs text-gray-500 text-center">
-            Software Engineer at Facebook
-          </p>
-        </a>
-        <a
-          href="#"
-          className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
-          title="View Profile"
-        >
-          <img
-            src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection3.jpg"
-            className="w-16 rounded-full"
-          />
-          <p className="text-center font-bold text-sm mt-1">Carlos Friedrich</p>
-          <p className="text-xs text-gray-500 text-center">
-            Front-End Developer at Tailwind CSS
-          </p>
-        </a>
-        <a
-          href="#"
-          className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
-          title="View Profile"
-        >
-          <img
-            src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection4.jpg"
-            className="w-16 rounded-full"
-          />
-          <p className="text-center font-bold text-sm mt-1">Donna Serrano</p>
-          <p className="text-xs text-gray-500 text-center">
-            System Engineer at Tesla
-          </p>
-        </a>
-        <a
-          href="#"
-          className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
-          title="View Profile"
-        >
-          <img
-            src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection5.jpg"
-            className="w-16 rounded-full"
-          />
-          <p className="text-center font-bold text-sm mt-1">Randall Tabron</p>
-          <p className="text-xs text-gray-500 text-center">
-            Software Developer at Upwork
-          </p>
-        </a>
-
-        <a
-          href="#"
-          className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
-          title="View Profile"
-        >
-          <img
-            src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection15.jpg"
-            className="w-16 rounded-full"
-          />
-          <p className="text-center font-bold text-sm mt-1">Jennifer Schultz</p>
-          <p className="text-xs text-gray-500 text-center">
-            Project Manager at Google
-          </p>
-        </a>
-        <a
-          href="#"
-          className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
-          title="View Profile"
-        >
-          <img
-            src="https://vojislavd.com/ta-template-demo/assets/img/connections/connection16.jpg"
-            className="w-16 rounded-full"
-          />
-          <p className="text-center font-bold text-sm mt-1">Joseph Marlatt</p>
-          <p className="text-xs text-gray-500 text-center">
-            Team Lead at Facebook
-          </p>
-        </a>
+        {communityMembers.map((member) => (
+          <a
+            key={member._id}
+            href="#"
+            className="flex flex-col items-center justify-center text-gray-800 hover:text-blue-600"
+            title="View Profile"
+          >
+            <img
+              src={member.image}
+              className="w-16 rounded-full"
+              alt={member.name}
+            />
+            <p className="text-center font-bold text-sm mt-1">{member.name}</p>
+            <p className="text-xs text-gray-500 text-center">{member.title}</p>
+          </a>
+        ))}
       </div>
     </div>
   );

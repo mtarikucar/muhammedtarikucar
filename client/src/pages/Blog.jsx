@@ -1,18 +1,23 @@
 import React from "react";
 import Posts from "../components/Post/Posts";
-import Chat from "../layouts/Chat";
+import { useSelector } from "react-redux";
+import Requests from "../layouts/Requests";
 
 function Blog() {
+  const { currentUser } = useSelector((store) => store.auth);
+
   return (
     <>
       <div className="container flex flex-rows items-center justify-center  overflow-hidden min-h-screen ">
         <div className="my-12 w-lg grid grid-cols-6 gap-4 w-3/4">
-          <div className="col-span-4 ">
+          <div className={currentUser ? `col-span-4`: "col-span-6"}>
             <Posts />
           </div>
-          <div className="chat col-span-2 sticky top-0">
-            <Chat/>
-          </div>
+          {currentUser && (
+            <div className="chat col-span-2 sticky top-0">
+              <Requests />
+            </div>
+          )}
         </div>
       </div>
     </>

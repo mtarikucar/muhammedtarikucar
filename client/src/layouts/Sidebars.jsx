@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { FcHome, FcUnlock, FcReading,FcTreeStructure, FcSms,FcNews } from "react-icons/fc";
+import {
+  FcHome,
+  FcUnlock,
+  FcReading,
+  FcTreeStructure,
+  FcSms,
+  FcNews,
+} from "react-icons/fc";
 import { HiOutlineServer } from "react-icons/hi";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -54,7 +61,7 @@ function Sidebars() {
                     </div>
                   </NavLink>
                 </li>
-                <li className="p-3">
+               {/*  <li className="p-3">
                   <NavLink to={`/Chat`}>
                     <div className="sidebar-icon flex flex-row hover:drop-shadow-xl rounded border-gray-500 p-2 hover:border-blue-600 hover:bg-gray-100 group">
                       <span
@@ -80,7 +87,7 @@ function Sidebars() {
                     </div>
                   </NavLink>
                 </li>
-                {/* currentUser.community && */ (
+                {currentUser.community && (
                   <li className="p-3">
                     <NavLink to={`/Community/${currentUser.community}`}>
                       <div className="sidebar-icon flex flex-row hover:drop-shadow-xl rounded border-gray-500 p-2 hover:border-blue-600 hover:bg-gray-100 group">
@@ -94,7 +101,7 @@ function Sidebars() {
                       </div>
                     </NavLink>
                   </li>
-                )}
+                )} */}
               </>
             )}
           </ul>
