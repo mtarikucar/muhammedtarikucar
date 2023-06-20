@@ -1,52 +1,10 @@
 import React from "react";
-import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
-import { useSelector } from "react-redux";
 
-const getCommunityMembers = async (communityId, token) => {
-  const { data } = await axios.get(
-    `http://localhost:3000/api/community/${communityId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return data;
-};
 
-function useCommunityMembers(communityId, token) {
-  return useQuery(
-    ["communityMembers", communityId],
-    () => getCommunityMembers(communityId, token),
-    {
-      onSuccess: (data) => {
-        console.log(data);
-      },
-      onError: (data) => {
-        console.log(communityId);
-      },
-    }
-  );
-}
 
-function Participitions() {
-  const { token, currentUser } = useSelector((store) => store.auth);
 
-  const {
-    data: communityMembers,
-    isLoading,
-    isError,
-    error,
-  } = useCommunityMembers(currentUser.community, token);
+function Participitions({data}) {
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (isError) {
-    return <div>Error: {error.message}</div>;
-  }
   return (
     <div className="bg-white rounded-lg shadow-xl p-8">
       <div className="flex items-center justify-between">
@@ -68,8 +26,8 @@ function Participitions() {
           </svg>
         </a>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-8 mt-8">
-        {communityMembers.map((member) => (
+      <div className="grid grid-cols-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-8 mt-8">
+        {data.members.map((member) => (
           <a
             key={member._id}
             href="#"
@@ -77,7 +35,7 @@ function Participitions() {
             title="View Profile"
           >
             <img
-              src={member.image}
+              src={member.image || "../src/assets/images/avatar.png"}
               className="w-16 rounded-full"
               alt={member.name}
             />

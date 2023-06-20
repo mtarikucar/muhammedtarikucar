@@ -44,7 +44,7 @@ function Posts({ userId, category }) {
           posts
             .slice(0)
             .reverse()
-            .map((post, key) => <Post key={key} post={post} />)}
+            .map((post, key) => <Post key={key} post={post}/>)}
     </>
   );
 }

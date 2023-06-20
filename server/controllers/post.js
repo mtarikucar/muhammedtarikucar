@@ -21,11 +21,11 @@ async function addPost(req, res, next) {
   }
 }
 
-async function getPost(req, res) {
+async function getPost(req, res, next) {
   try {
     const { category, userId } = req.query;
 
-    const {id} = req.params // Destructuring the query parameters from the request
+    const { id } = req.params; // Destructuring the query parameters from the request
     console.log();
     let whereClause = {}; // Initializing an empty where clause object for the Sequelize query
 
@@ -44,8 +44,10 @@ async function getPost(req, res) {
     }
 
     console.log("get isteiği alındı");
-    const posts = await Posts.find(whereClause);
-    
+    const posts = await Posts.find(whereClause).populate("author").populate({
+      path: "comments",
+      populate: ({path:"user",select:"name image"}),
+    });
     res.json(posts);
   } catch (er) {
     console.log(er);
@@ -53,8 +55,6 @@ async function getPost(req, res) {
     next(er);
   }
 }
-
-
 
 async function deletePost(req, res, next) {
   try {
@@ -72,5 +72,129 @@ async function deletePost(req, res, next) {
   }
 }
 
+// Yorum ekleme
+async function addComment(req, res, next) {
+  try {
+    const { postId, content, user } = req.body;
 
-module.exports = { addPost, getPost, deletePost };
+    // Yeni yorum oluştur
+    const newComment = {
+      text: content,
+      user: user,
+      createdAt: new Date(),
+    };
+
+    // Post'u güncelle ve yorumu ekle
+    const updatedPost = await Posts.findByIdAndUpdate(
+      postId,
+      { $push: { comments: newComment } },
+      { new: true }
+    );
+
+    if (updatedPost) {
+      return res.json({
+        msg: "Comment added successfully.",
+        post: updatedPost,
+      });
+    } else {
+      return res.json({ msg: "Failed to add comment to the post." });
+    }
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+}
+
+// Yorum silme
+async function deleteComment(req, res, next) {
+  try {
+    const { postId, commentId } = req.params;
+
+    // Post'tan yorumu kaldır
+    const updatedPost = await Posts.findByIdAndUpdate(
+      postId,
+      { $pull: { comments: { _id: commentId } } },
+      { new: true }
+    );
+
+    if (updatedPost) {
+      return res.json({
+        msg: "Comment deleted successfully.",
+        post: updatedPost,
+      });
+    } else {
+      return res.json({ msg: "Failed to delete comment from the post." });
+    }
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+}
+
+// Gönderi beğenme
+async function likePost(req, res, next) {
+  try {
+    const { postId, userId } = req.body;
+
+    // Kullanıcının gönderiyi beğenip beğenmediğini kontrol et
+    const post = await Posts.findById(postId);
+    if (post.likes.includes(userId)) {
+      return res.json({ msg: "User has already liked the post." });
+    }
+
+    // Post'u güncelle ve kullanıcının beğenisini ekle
+    const updatedPost = await Posts.findByIdAndUpdate(
+      postId,
+      { $push: { likes: userId } },
+      { new: true }
+    );
+
+    if (updatedPost) {
+      return res.json({ msg: "Post liked successfully.", post: updatedPost });
+    } else {
+      return res.json({ msg: "Failed to like the post." });
+    }
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+}
+
+// Beğenmeyi geri alma
+async function unlikePost(req, res, next) {
+  try {
+    const { postId, userId } = req.body;
+
+    // Kullanıcının gönderiyi beğenip beğenmediğini kontrol et
+    const post = await Posts.findById(postId);
+    if (!post.likes.includes(userId)) {
+      return res.json({ msg: "User has not liked the post." });
+    }
+
+    // Post'tan kullanıcının beğenisini kaldır
+    const updatedPost = await Posts.findByIdAndUpdate(
+      postId,
+      { $pull: { likes: userId } },
+      { new: true }
+    );
+
+    if (updatedPost) {
+      return res.json({ msg: "Post unliked successfully.", post: updatedPost });
+    } else {
+      return res.json({ msg: "Failed to unlike the post." });
+    }
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+}
+
+module.exports = {
+  addPost,
+  getPost,
+  deletePost,
+  addComment,
+  deleteComment,
+  likePost,
+  unlikePost,
+};

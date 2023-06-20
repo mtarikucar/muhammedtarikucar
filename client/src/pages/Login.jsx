@@ -1,8 +1,7 @@
 import { useFormik } from "formik";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as Yup from "yup";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import {  toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../store/AuthSlice";
 import { Link } from "react-router-dom";
@@ -98,7 +97,7 @@ const navigate = useNavigate()
           </Link>
         </form>
       </div>
-      <ToastContainer />
+
     </>
   );
 };

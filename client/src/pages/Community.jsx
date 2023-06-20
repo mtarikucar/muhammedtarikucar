@@ -5,6 +5,7 @@ import Info from "../components/Community/Info";
 import Participitions from "../components/Community/Participitions";
 import { useSelector } from "react-redux";
 
+
 import { useQuery } from "@tanstack/react-query";
 
 import axios from "axios";
@@ -23,17 +24,12 @@ function Community() {
   const { isLoading, isError, data } = useQuery(["community"], async () => {
     const response = await axios.get(
       `http://localhost:3000/api/community/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          id: currentUser._id,
-        },
-      }
+      
     );
     return response.data;
-  });
+  },{onSuccess:(data)=>{
+    console.log(data);
+  }});
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -58,13 +54,13 @@ function Community() {
             <CommunityCard
               openCommunityUpdateModal={openCommunityUpdateModal}
               setOpenCommunityUpdateModal={setOpenCommunityUpdateModal}
-              data={data[0]}
+              data={data}
             />
           )}
-          <ActivityLog />
+          {/* <ActivityLog /> */}
         </div>
         <div className="col-span-2 lg:grid-cols-2 md:grid-cols-2 ">
-          <Participitions />
+          <Participitions data={data}/>
           <Info />
         </div>
       </div>

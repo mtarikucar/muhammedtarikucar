@@ -12,23 +12,48 @@ const productSchema = new Schema(
       type: String,
       required: true
     },
-    materials:{
+    materials: {
       type: Array,
-      "default": []
+      default: []
     },
     sound: {
-      type: String,      
+      type: String
     },
     category: {
-      type: String,
+      type: String
     },
-    author:{
+    author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
-    }
-  }, {
-  timestamps: true
-}
+    },
+    comments: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User"
+        },
+        text: {
+          type: String,
+          required: true
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
+    likes: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User"
+        }
+      }
+    ]
+  },
+  {
+    timestamps: true
+  }
 );
 
 module.exports = mongoose.model('Posts', productSchema);

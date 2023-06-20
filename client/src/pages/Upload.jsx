@@ -14,8 +14,8 @@ import { FiUpload } from "react-icons/fi";
 import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+
 
 import RichTextEditor from "../components/RichTextEditor";
 
@@ -232,7 +232,7 @@ function Upload() {
                     share
                   </button>
 
-                  <ToastContainer />
+                  
                 </div>
               </div>
             </div>

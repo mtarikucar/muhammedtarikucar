@@ -1,4 +1,5 @@
 const Room = require("../models/Room.model");
+const User = require("../models/User.model");
 
 const createRoom = async (req, res) => {
   const { name, admin, image } = req.body;
@@ -29,13 +30,28 @@ const addMember = async (req, res) => {
   }
 };
 
+const startDirectMessage = async (req, res) => {
+  const { userId1, userId2,name } = req.body;
+
+  try {
+    // Create a new room
+    const newRoom = await Room.create({ name: name, members: [userId1, userId2] });
+    
+    
+    res.status(201).json(newRoom);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to start a direct message" });
+  }
+};
+
+
+
 const getRooms = async (req, res) => {
   const { userId } = req.params;
 
   try {
     const rooms = await Room.find({
       members: userId,
-      isCommunity: { $ne: null },
     })
       .populate("isCommunity", "name") // Populate the "community" field and retrieve only the "name" property
       
@@ -45,4 +61,4 @@ const getRooms = async (req, res) => {
   }
 };
 
-module.exports = { createRoom, getRooms, addMember };
+module.exports = { createRoom, getRooms, addMember,startDirectMessage };

@@ -41,7 +41,7 @@ async function getCommunityById(req, res, next) {
   try {
     const communityId = req.params.id;
 
-    const community = await Community.find({ _id: communityId });
+    const community = await Community.findById(communityId).populate("members");
     res.json(community);
   } catch (er) {
     console.log(er);
@@ -154,8 +154,10 @@ async function handleJoinRequest(req, res, next) {
 
 async function getJoinRequests(req, res, next) {
   try {
-    const communityId = req.params.communityId;
+    const {communityId} = req.params;
+    console.log(communityId);
     const community = await Community.findById(communityId);
+    console.log(community);
 
     if (!community) {
       return res.status(404).json({ message: "Community not found" });

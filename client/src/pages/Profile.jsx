@@ -15,7 +15,7 @@ const fetchUser = async (userId) => {
 
 
 const useUser = (userId) => {
-  return useQuery(['user', userId], () => fetchUser(userId), { enabled: !!userId });
+  return useQuery(['user', userId], () => fetchUser(userId), { enabled: !!userId ,refetchOnMount:true});
 };
 
 
@@ -35,8 +35,8 @@ function Profile() {
 
   return (
     <div className="flex flex-row justify-center h-screen items-center">
-      <div className="grid grid-cols-3  w-3/4 gap-4 content-center">
-        <div className="col-span-1">
+      <div className="grid grid-cols-3 md:grid-cols-2  w-3/4 gap-4 content-center">
+        <div className="col-span-1 md:col-span-2">
           <ProfileCart user={user}/>
         </div>
         <div className="col-span-2 flex flex-col m-3 w-full justify-center items-center">

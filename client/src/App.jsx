@@ -18,13 +18,15 @@ import Todos from "./pages/Todos";
 
 import MessageBoxButton from "./components/MessageBoxButton";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { useSelector } from "react-redux";
 function App() {
 
   const {currentUser} = useSelector((store) => store.auth);
   return (
-    <div className="bg-gray-50">
+    <div className="">
       <Sidebars />
       <Routes>
         <Route path="/Login" element={<Login />} />
@@ -48,6 +50,7 @@ function App() {
       {currentUser &&
       <MessageBoxButton/>
     }
+    <ToastContainer />
     </div>
   );
 }

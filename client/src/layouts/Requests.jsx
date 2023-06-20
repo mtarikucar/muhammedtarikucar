@@ -3,7 +3,7 @@ import axios from "axios";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
-
+import {  toast } from "react-toastify";
 const getJoinRequests = async (communityId, token, id) => {
   const { data } = await axios.get(
     `http://localhost:3000/api/community/join/${communityId}`,
@@ -19,20 +19,7 @@ const getJoinRequests = async (communityId, token, id) => {
   return data;
 };
 
-function useJoinRequests(communityId, token, id) {
-  return useQuery(
-    ["joinRequests", communityId],
-    () => getJoinRequests(communityId, token, id),
-    {
-      onSuccess: (data) => {
-        console.log(data);
-      },
-      onError: (data) => {
-        console.log(communityId);
-      },
-    }
-  );
-}
+
 
 const handleRequestAction = async ({ action, requestId, token }) => {
   const { data } = await axios.patch(
@@ -54,15 +41,40 @@ function Requests() {
 
   const {
     data: joinRequests,
-  } = useJoinRequests(currentUser.community, token, currentUser._id);
+    refetch
+  } = useQuery(
+    ["joinRequests", currentUser.community],
+    () => getJoinRequests(currentUser.community, token, currentUser._id),
+    {
+      onSuccess: (data) => {
+        console.log(data);
+      },
+      onError: (data) => {
+        console.log(communityId);
+      },
+    }
+  );
 
   const acceptRequestMutation = useMutation(
     (requestId) => handleRequestAction({ action: "accept", requestId, token }),
+    {
+      onSuccess:()=>{
+        refetch();
+        toast.success("istek kabul edildi")
+      }
+    }
     
   );
-
+  
   const rejectRequestMutation = useMutation(
     (requestId) => handleRequestAction({ action: "reject", requestId, token }),
+    {
+      onSuccess:()=>{
+        refetch();
+        
+        toast.error("istek reddedildi")
+      }
+    }
   );
 
   const handleAccept = (requestId) => {
@@ -123,7 +135,7 @@ function Requests() {
                     <div className="flex items-center">
                       <img
                         className="rounded-full items-start flex-shrink-0 mr-3"
-                        src={request.user.image}
+                        src={request.user.image || "../src/assets/images/avatar.png"}
                         width="32"
                         height="32"
                         alt={request.user.name}

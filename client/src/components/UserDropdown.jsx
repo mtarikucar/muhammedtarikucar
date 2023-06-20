@@ -43,7 +43,7 @@ function UserDropdown({ setIsOpen ,setIsCommunityOpen}) {
                     "block px-4 py-2 text-sm"
                   )}
                 >
-                  Update
+                  profili güncelle
                 </button>
               )}
             </Menu.Item>
@@ -59,7 +59,7 @@ function UserDropdown({ setIsOpen ,setIsCommunityOpen}) {
                     "block px-4 py-2 text-sm"
                   )}
                 >
-                  Create Community
+                  topluluk oluştur
                 </button>
               )}
             </Menu.Item>
@@ -75,7 +75,7 @@ function UserDropdown({ setIsOpen ,setIsCommunityOpen}) {
                     "block w-full px-4 py-2  text-sm"
                   )}
                 >
-                  Log out
+                  çıkış yap
                 </button>
               )}
             </Menu.Item>

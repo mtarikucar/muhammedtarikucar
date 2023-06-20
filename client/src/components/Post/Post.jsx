@@ -1,13 +1,19 @@
 import { NavLink } from "react-router-dom";
-import { FcFullTrash } from "react-icons/fc";
+import { FcFullTrash,FcLikePlaceholder,FcLike} from "react-icons/fc";
 import { useSelector } from "react-redux";
 import { useState } from "react";
 import DeleteConfirmationModal from "../DeleteConfirmationModal";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation,useQueryClient } from "@tanstack/react-query";
 import AudioPlayer from "../AudioPlayer";
 import axios from "axios";
 
+
+
+
 function Post({ post }) {
+
+  const queryClient = useQueryClient()
+  
   const date = new Date(post.updatedAt);
   const day = date.getDate();
   const month = date.getMonth() + 1;
@@ -20,6 +26,8 @@ function Post({ post }) {
   const { currentUser, token } = useSelector((store) => store.auth);
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
   
+
+
   const deletePost = async (postId) => {
     const response = await axios.delete(
       `http://localhost:3000/api/posts/${postId}`,
@@ -36,7 +44,12 @@ function Post({ post }) {
     );
     return response.data;
   };
-  const deleteMutation = useMutation(deletePost);
+  
+  const deleteMutation = useMutation(deletePost,{
+    onSuccess:()=>{
+      queryClient.invalidateQueries("posts")
+    }
+  });
 
   function handleDeleteConfirmation() {
     deleteMutation.mutate(post._id);
@@ -77,7 +90,7 @@ function Post({ post }) {
               <NavLink to={`/Blog/${post._id}`}>{post.title}</NavLink>
             </h3>
             <div className="">
-              {currentUser?._id == post.author && (
+              {currentUser?._id == post.author._id && (
                 <FcFullTrash
                   onClick={() => setShowDeleteConfirmationModal(true)}
                   className={`cursor-pointer`}
@@ -111,14 +124,15 @@ function Post({ post }) {
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 ></path>
               </svg>
+              
               <p className="text-xs font-medium">{formattedDate}</p>
             </div>
             <p className="mt-2 text-xs font-medium text-gray-500 sm:mt-0">
               <NavLink
-                to={`/Profile/${post.author}`}
+                to={`/Profile/${post.author._id}`}
                 className="underline hover:text-gray-800"
               >
-                # {post.author}
+                # {post.author.name}
               </NavLink>
             </p>
           </div>

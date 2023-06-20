@@ -55,7 +55,7 @@ function Chat() {
   }
 
   return (
-    <div className="h-screen px-24 sm:px-2 w-full">
+    <div className="max-h-screen px-24 sm:px-2 w-full flex items-center justify-center">
       <div className="container m-auto flex my-10 border rounded-sm w-full">
         <div
           className={` p-4 sm:p-6 justify-start flex flex-col h-[80vh] bg-gray-200  overflow-y-scroll scrollbar-thumb-gray-900 scrollbar-track-gray-100 scrollbar-thin ${

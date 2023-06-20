@@ -34,6 +34,7 @@ function MessageBox({ room, socket }) {
     {
       onSuccess: (data) => {
         setMessages(data)
+        
       }
     },
   );
@@ -121,9 +122,9 @@ function MessageBox({ room, socket }) {
                     </span>
                   </div>
                 </div>
-                {!message.sender._id === currentUser._id && (
-                  <span className="font-light border p-1 rounded-lg hover:">
-                    {message.username}
+                {(message.sender._id !== currentUser._id) && (
+                  <span className="font-light border p-1 rounded-lg w-16 flex justify-center items-center">
+                    {message.sender.name}
                   </span>
                 )}
               </div>
