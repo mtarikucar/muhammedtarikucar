@@ -6,8 +6,10 @@ module.exports.verifyToken = (req, res, next) => {
 
   !authorization && res.status(400).json({ message: 'Not authenticated!' });
   
+  
   const token = authorization.split(' ')[1];
   
+
   let payload;
   try {
     /* Returns the payload if the signature is valid.

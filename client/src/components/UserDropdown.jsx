@@ -12,7 +12,7 @@ function classNames(...classes) {
 function UserDropdown({ setIsOpen ,setIsCommunityOpen}) {
   const dispach = useDispatch();
 
-  /*   const [isOpen ,setIsOpen]=useState(false) */
+
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
@@ -48,7 +48,7 @@ function UserDropdown({ setIsOpen ,setIsCommunityOpen}) {
               )}
             </Menu.Item>
 
-            {/* <Menu.Item>
+            <Menu.Item>
               {({ active }) => (
                 <button
                   onClick={() => setIsCommunityOpen(true)}
@@ -62,7 +62,7 @@ function UserDropdown({ setIsOpen ,setIsCommunityOpen}) {
                   Create Community
                 </button>
               )}
-            </Menu.Item> */}
+            </Menu.Item>
 
             <Menu.Item>
               {({ active }) => (
@@ -79,22 +79,7 @@ function UserDropdown({ setIsOpen ,setIsCommunityOpen}) {
                 </button>
               )}
             </Menu.Item>
-            {/*  <form method="POST" action="#">
-                            <Menu.Item>
-                                {({ active }) => (
-                                    <button
-                                        onClick={dispach(logoutSuccess)}
-                                        type="submit"
-                                        className={classNames(
-                                            active ? 'bg-gray-100 text-red-600' : 'text-red-600',
-                                            'block w-full px-4 py-2 text-left text-sm'
-                                        )}
-                                    >
-                                        Log out
-                                    </button>
-                                )}
-                            </Menu.Item>
-                        </form> */}
+            
           </div>
         </Menu.Items>
       </Transition>

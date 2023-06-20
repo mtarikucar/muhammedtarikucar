@@ -61,19 +61,6 @@ function Sidebars() {
                     </div>
                   </NavLink>
                 </li>
-               {/*  <li className="p-3">
-                  <NavLink to={`/Chat`}>
-                    <div className="sidebar-icon flex flex-row hover:drop-shadow-xl rounded border-gray-500 p-2 hover:border-blue-600 hover:bg-gray-100 group">
-                      <span
-                        className="transititext-primary text-primary transition duration-150 rounded-xl ease-in-out hover:text-primary-600 focus:text-primary-600 active:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500 dark:focus:text-primary-500 dark:active:text-primary-600"
-                        data-te-toggle="tooltip"
-                        title="Profile"
-                      >
-                        <FcSms className="h-6 w-6 cursor-pointer text-gray-500 hover:text-blue-600" />
-                      </span>
-                    </div>
-                  </NavLink>
-                </li>
                 <li className="p-3">
                   <NavLink to={`/Notifications`}>
                     <div className="sidebar-icon flex flex-row hover:drop-shadow-xl rounded border-gray-500 p-2 hover:border-blue-600 hover:bg-gray-100 group">
@@ -101,10 +88,11 @@ function Sidebars() {
                       </div>
                     </NavLink>
                   </li>
-                )} */}
+                )}
               </>
             )}
           </ul>
+          {!currentUser &&
           <div className="flex items-center justify-center pb-5">
             <NavLink to={"/Login"}>
               <div className="sidebar-icon flex flex-row hover:drop-shadow-xl rounded border-gray-500 p-2 hover:border-blue-600 hover:bg-gray-100 group">
@@ -118,6 +106,7 @@ function Sidebars() {
               </div>
             </NavLink>
           </div>
+          }
         </div>
       </div>
     </div>

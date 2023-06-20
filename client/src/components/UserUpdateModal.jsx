@@ -16,7 +16,7 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
     const userId = id;
 
     const updateUser = async (userData) => {
-        const response = await axios.put(`http://18.197.123.238:3000/api/users/${userId}`, userData, {
+        const response = await axios.put(`http://localhost:3000/api/users/${userId}`, userData, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -26,7 +26,7 @@ function UserUpdateModal({ isOpen, setIsOpen }) {
     const { mutate } = useMutation(updateUser);
 
     const { data: user, isLoading } = useQuery(["user", userId], async () => {
-        const response = await axios.get(`http://18.197.123.238:3000/api/users/${userId}`);
+        const response = await axios.get(`http://localhost:3000/api/users/${userId}`);
         const data = response.data;
         return data[0];
     }, {

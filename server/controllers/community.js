@@ -1,6 +1,7 @@
 const Community = require("../models/Community.model");
 const CommunityRequest = require("../models/CommunityRequest.model");
 const User = require("../models/User.model");
+const Room = require("../models/Room.model");
 
 async function createCommunity(req, res, next) {
   try {
@@ -17,12 +18,24 @@ async function createCommunity(req, res, next) {
       },
       { new: true } // return the updated document
     );
-    res.status(201).json(newCommunity);
+
+    const admin = owner;
+
+    try {
+      await Room.create({
+        name,
+        admin,
+        members: [admin],
+        isCommunity: newCommunity._id,
+      });
+      return res.status(201).json(newCommunity);
+    } catch (error) {
+      return res.status(500).json({ error: "Failed to create a room" });
+    }
   } catch (err) {
     next(err);
   }
 }
-
 
 async function getCommunityById(req, res, next) {
   try {
@@ -36,7 +49,6 @@ async function getCommunityById(req, res, next) {
     next(er);
   }
 }
-
 
 async function updateCommunityById(req, res, next) {
   try {
@@ -53,7 +65,7 @@ async function updateCommunityById(req, res, next) {
       {
         name: req.body.name || community.name,
         image: req.body.image || community.image,
-        description: req.body.description || community.description
+        description: req.body.description || community.description,
       },
       { new: true } // return the updated document
     );
@@ -66,8 +78,6 @@ async function updateCommunityById(req, res, next) {
     res.status(500).json(error);
   }
 }
-
-
 
 async function sendJoinRequest(req, res, next) {
   try {
@@ -103,7 +113,8 @@ async function handleJoinRequest(req, res, next) {
     const request = await CommunityRequest.findById(requestId).populate(
       "user community"
     );
-
+    const room = await Room.findOne({ isCommunity: request.community._id });
+    
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
     }
@@ -115,9 +126,19 @@ async function handleJoinRequest(req, res, next) {
     }
 
     if (action === "accept") {
+      console.log(request);
       request.status = "accepted";
       request.community.members.push(request.user);
+      await User.findByIdAndUpdate(
+        request.user._id,
+        {
+          community: request.community._id
+        },
+        { new: true } // return the updated document
+      );
+      room.members.push(request.user._id);
       await request.community.save();
+      await room.save();
     } else if (action === "reject") {
       request.status = "rejected";
     } else {
@@ -163,5 +184,5 @@ module.exports = {
   sendJoinRequest,
   handleJoinRequest,
   getJoinRequests,
-  getCommunityById
+  getCommunityById,
 };

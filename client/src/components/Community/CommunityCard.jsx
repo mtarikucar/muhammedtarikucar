@@ -11,7 +11,7 @@ function CommunityCard({ data, openCommunityUpdateModal, setOpenCommunityUpdateM
   const { id } = useParams();
 
   const mutate= useMutation(() =>
-    axios.post(`http://18.197.123.238:3000/api/community/join/${id}`,{}, {
+    axios.post(`http://localhost:3000/api/community/join/${id}`,{}, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -39,7 +39,7 @@ function CommunityCard({ data, openCommunityUpdateModal, setOpenCommunityUpdateM
         <div className="flex flex-col  items-center  -mt-20">
 
           <img
-            src={` ${data.image ? data.image : 'https://vojislavd.com/ta-template-demo/assets/img/profile.jpg'}`}
+            src={` ${data.image  ? data.image : 'https://vojislavd.com/ta-template-demo/assets/img/profile.jpg'}`}
             className="w-40 border-4 border-white rounded-full"
           />
 

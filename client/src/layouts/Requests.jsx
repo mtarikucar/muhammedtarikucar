@@ -6,7 +6,7 @@ import { NavLink } from "react-router-dom";
 
 const getJoinRequests = async (communityId, token, id) => {
   const { data } = await axios.get(
-    `http://18.197.123.238:3000/api/community/join/${communityId}`,
+    `http://localhost:3000/api/community/join/${communityId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -36,7 +36,7 @@ function useJoinRequests(communityId, token, id) {
 
 const handleRequestAction = async ({ action, requestId, token }) => {
   const { data } = await axios.patch(
-    `http://18.197.123.238:3000/api/community/join/${requestId}`,
+    `http://localhost:3000/api/community/join/${requestId}`,
     {
       action: action,
     },
@@ -54,33 +54,15 @@ function Requests() {
 
   const {
     data: joinRequests,
-    isLoading,
-    isError,
-    error,
   } = useJoinRequests(currentUser.community, token, currentUser._id);
 
   const acceptRequestMutation = useMutation(
     (requestId) => handleRequestAction({ action: "accept", requestId, token }),
-    {
-      onSuccess: () => {
-        // Handle success, e.g. refetch data or show a success message
-      },
-      onError: () => {
-        // Handle error, e.g. show an error message
-      },
-    }
+    
   );
 
   const rejectRequestMutation = useMutation(
     (requestId) => handleRequestAction({ action: "reject", requestId, token }),
-    {
-      onSuccess: () => {
-        // Handle success, e.g. refetch data or show a success message
-      },
-      onError: () => {
-        // Handle error, e.g. show an error message
-      },
-    }
   );
 
   const handleAccept = (requestId) => {
@@ -98,15 +80,7 @@ function Requests() {
           <header className="pt-6 pb-4 px-5 border-b border-gray-200">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center">
-                {/* <a className="inline-flex items-start mr-3" href="#0">
-                  <img
-                    className="rounded-full"
-                    src={currentUser.image }
-                    width="48"
-                    height="48"
-                    alt="profile"
-                  />
-                </a> */}
+                
                 <div className="pr-1">
                   <a
                     className="inline-flex text-gray-800 hover:text-gray-900"

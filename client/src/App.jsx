@@ -1,11 +1,7 @@
 import React from "react";
 import { Routes, Route,NavLink } from "react-router-dom";
 
-
-
 import Sidebars from "./layouts/Sidebars";
-
-
 
 import Home from "./pages/Home";
 import Portfolio from "./pages/Portfolio";
@@ -20,7 +16,13 @@ import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
 import Todos from "./pages/Todos";
 
+import MessageBoxButton from "./components/MessageBoxButton";
+
+
+import { useSelector } from "react-redux";
 function App() {
+
+  const {currentUser} = useSelector((store) => store.auth);
   return (
     <div className="bg-gray-50">
       <Sidebars />
@@ -43,6 +45,9 @@ function App() {
           @beta-0.0/muhammedtarikucar.com
         </pre>
       </NavLink>
+      {currentUser &&
+      <MessageBoxButton/>
+    }
     </div>
   );
 }

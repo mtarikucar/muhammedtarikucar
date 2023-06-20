@@ -16,7 +16,7 @@ function CommunityUpdateModal({ communityData, openCommunityUpdateModal, setOpen
 
 
     const updateUser = async (userData) => {
-        const response = await axios.put(`http://18.197.123.238:3000/api/community/${communityData._id}`, userData, {
+        const response = await axios.put(`http://localhost:3000/api/community/${communityData._id}`, userData, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
