@@ -35,19 +35,7 @@ async function updateUserById(req, res, next) {
       return;
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      {
-        name: req.body.name || user.name,
-        phone_number: req.body.phone_number || user.phone_number,
-        image: req.body.image || user.image,
-        gender: req.body.gender || user.gender,
-        bio: req.body.bio || user.bio,
-        website: req.body.website || user.website,
-        community: req.body.community || user.community
-      },
-      { new: true } // return the updated document
-    );
+    const User = require("../models/User.model");
 
     res.status(200).json({
       message: "User is updated successfully!",

@@ -22,7 +22,7 @@ function Community() {
 
   const { isLoading, isError, data } = useQuery(["community"], async () => {
     const response = await axios.get(
-      `http://18.197.123.238:3000/api/community/${id}`,
+      `http://localhost:3000/api/community/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 
 const getCommunityMembers = async (communityId, token) => {
   const { data } = await axios.get(
-    `http://18.197.123.238:3000/api/community/${communityId}`,
+    `http://localhost:3000/api/community/${communityId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

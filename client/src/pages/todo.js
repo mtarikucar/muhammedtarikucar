@@ -21,7 +21,7 @@ const Todo = [
   },
   {
     id: 6,
-    todo: "beğenme ve kaydetme eklenecek",
+    todo: "beğenme eklenecek",
   },
   {
     id: 7,
@@ -38,6 +38,13 @@ const Todo = [
   {
     id: 10,
     todo: "gpt apı eklencek ve community analiz eklenecek",
+  },
+  {
+    id: 11,
+    todo: "mesajları çift taraflı şifrele",
+  },{
+    id: 12,
+    todo: "joyride ile sistem tanıtımı eklenecek",
   },
 ];
 

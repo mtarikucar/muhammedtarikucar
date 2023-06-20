@@ -16,7 +16,7 @@ import axios from "axios";
 
 // Custom Hook
 const fetchPost = async (id) => {
-  const response = await axios.get(`http://18.197.123.238:3000/api/posts/${id}`);
+  const response = await axios.get(`http://localhost:3000/api/posts/${id}`);
   return response.data[0];
 };
 

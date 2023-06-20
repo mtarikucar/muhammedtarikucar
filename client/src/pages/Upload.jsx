@@ -50,7 +50,7 @@ function Upload() {
     async (props) => {
 
       const response = await axios.post(
-        "http://18.197.123.238:3000/api/posts",
+        "http://localhost:3000/api/posts",
         props.props,
         {
           headers: {
