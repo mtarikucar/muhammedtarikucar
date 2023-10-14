@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
@@ -6,54 +6,58 @@ const productSchema = new Schema(
   {
     title: {
       type: String,
-      required: true
+      required: true,
     },
     content: {
       type: String,
-      required: true
+      required: true,
     },
     materials: {
       type: Array,
-      default: []
+      default: [],
     },
     sound: {
-      type: String
+      type: String,
     },
     category: {
-      type: String
+      type: String,
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
+      ref: "User",
+    },
+    event: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event",
     },
     comments: [
       {
         user: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "User"
+          ref: "User",
         },
         text: {
           type: String,
-          required: true
+          required: true,
         },
         createdAt: {
           type: Date,
-          default: Date.now
-        }
-      }
+          default: Date.now,
+        },
+      },
     ],
     likes: [
       {
         user: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "User"
-        }
-      }
-    ]
+          ref: "User",
+        },
+      },
+    ],
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
-module.exports = mongoose.model('Posts', productSchema);
+module.exports = mongoose.model("Posts", productSchema);

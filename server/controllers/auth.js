@@ -3,6 +3,34 @@ const JWT = require("jsonwebtoken");
 
 const User = require("../models/User.model");
 
+// Function to generate an access token
+const generateAccessToken = (user) => {
+  return JWT.sign(
+    {
+      id: user._id.toString(),
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "15m", // Set the expiration time as needed
+    }
+  );
+};
+
+// Function to generate a refresh token
+const generateRefreshToken = (user) => {
+  return JWT.sign(
+    {
+      id: user._id.toString(),
+      role: user.role,
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: "7d", // Set the expiration time as needed
+    }
+  );
+};
+
 async function register(req, res) {
   const { username, email, password } = req.body;
   try {
@@ -42,7 +70,7 @@ async function register(req, res) {
 
 async function login(req, res) {
   const { username, password } = req.body;
-  /* console.log(username, password); */
+
   try {
     const user = await User.findOne({
       name: username,
@@ -63,22 +91,15 @@ async function login(req, res) {
       });
     }
 
-    // Create token
-    const token = JWT.sign(
-      {
-        id: user._id.toString(),
-        role: user.role,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
-    );
+    // Create tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
     delete user.password;
 
     return res.status(200).json({
-      token,
+      accessToken,
+      refreshToken,
       user,
     });
   } catch (err) {
@@ -90,4 +111,20 @@ async function login(req, res) {
   }
 }
 
-module.exports = { login, register };
+async function refresh(req, res) {
+  const refreshToken = req.body.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token is required!" });
+  }
+
+  try {
+    const user = JWT.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const accessToken = generateAccessToken(user);
+    res.json({ accessToken });
+  } catch (error) {
+    res.status(403).json({ message: "Invalid refresh token!" });
+  }
+}
+
+module.exports = { login, register,refresh };

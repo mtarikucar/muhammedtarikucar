@@ -3,7 +3,7 @@ const Posts = require("../models/Post.model");
 
 async function addPost(req, res, next) {
   try {
-    const { title, content, materials, sound, category, author } = req.body;
+    const { title, content, materials, sound, category, author, event } = req.body;
     const data = await Posts.create({
       title: title,
       content: content,
@@ -11,6 +11,7 @@ async function addPost(req, res, next) {
       sound: sound,
       category: category,
       author: author,
+      event: event,
     });
 
     if (data) return res.json({ msg: "Message added successfully." });
@@ -130,29 +131,39 @@ async function deleteComment(req, res, next) {
     next(err);
   }
 }
-
-// Gönderi beğenme
-async function likePost(req, res, next) {
+async function toggleLike(req, res, next) {
   try {
     const { postId, userId } = req.body;
 
     // Kullanıcının gönderiyi beğenip beğenmediğini kontrol et
     const post = await Posts.findById(postId);
+
     if (post.likes.includes(userId)) {
-      return res.json({ msg: "User has already liked the post." });
-    }
+      // Kullanıcı zaten beğenmişse beğeniyi kaldır
+      const updatedPost = await Posts.findByIdAndUpdate(
+        postId,
+        { $pull: { likes: userId } },
+        { new: true }
+      );
 
-    // Post'u güncelle ve kullanıcının beğenisini ekle
-    const updatedPost = await Posts.findByIdAndUpdate(
-      postId,
-      { $push: { likes: userId } },
-      { new: true }
-    );
-
-    if (updatedPost) {
-      return res.json({ msg: "Post liked successfully.", post: updatedPost });
+      if (updatedPost) {
+        return res.json({ msg: "Post unliked successfully.", post: updatedPost });
+      } else {
+        return res.json({ msg: "Failed to unlike the post." });
+      }
     } else {
-      return res.json({ msg: "Failed to like the post." });
+      // Kullanıcı daha önce beğenmemişse beğeni ekle
+      const updatedPost = await Posts.findByIdAndUpdate(
+        postId,
+        { $push: { likes: userId } },
+        { new: true }
+      );
+
+      if (updatedPost) {
+        return res.json({ msg: "Post liked successfully.", post: updatedPost });
+      } else {
+        return res.json({ msg: "Failed to like the post." });
+      }
     }
   } catch (err) {
     console.log(err);
@@ -160,34 +171,6 @@ async function likePost(req, res, next) {
   }
 }
 
-// Beğenmeyi geri alma
-async function unlikePost(req, res, next) {
-  try {
-    const { postId, userId } = req.body;
-
-    // Kullanıcının gönderiyi beğenip beğenmediğini kontrol et
-    const post = await Posts.findById(postId);
-    if (!post.likes.includes(userId)) {
-      return res.json({ msg: "User has not liked the post." });
-    }
-
-    // Post'tan kullanıcının beğenisini kaldır
-    const updatedPost = await Posts.findByIdAndUpdate(
-      postId,
-      { $pull: { likes: userId } },
-      { new: true }
-    );
-
-    if (updatedPost) {
-      return res.json({ msg: "Post unliked successfully.", post: updatedPost });
-    } else {
-      return res.json({ msg: "Failed to unlike the post." });
-    }
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-}
 
 module.exports = {
   addPost,
@@ -195,6 +178,5 @@ module.exports = {
   deletePost,
   addComment,
   deleteComment,
-  likePost,
-  unlikePost,
+  toggleLike
 };

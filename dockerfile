@@ -1,26 +1,22 @@
-# İlk adım olarak resmi Node.js imajını alalım.
+# İlk olarak, kullanmak istediğiniz temel Docker görüntüsünü belirtin
 FROM node:14
 
-# Uygulamamızın çalışacağı dizini oluşturuyoruz.
+# Çalışma dizinini oluşturun ve bu dizini varsayılan olarak ayarlayın
 WORKDIR /app
 
-# Uygulamanın MongoDB, React, ve Express sunucusu ile ilgili bağımlılıklarını kuruyoruz.
-RUN apt-get update && apt-get install -y \
-    mongodb \
- && rm -rf /var/lib/apt/lists/*
-
-# MongoDB'nin verilerini depolayacağı dizini oluşturuyoruz.
-RUN mkdir -p /data/db
-
-# Uygulamanın bağımlılıklarını Docker önbelleğine alıyoruz.
+# Bağımlılıkları kopyalayın ve paketleri yükleyin
 COPY package*.json ./
 RUN npm install
 
-# Uygulamanın kaynak dosyalarını kopyalıyoruz.
+# Proje dosyalarını kopyalayın
 COPY . .
 
-# Uygulamanın üretim sürümünü oluşturuyoruz.
+# İstemci tarafındaki React uygulamasını oluşturun
+WORKDIR /app/client
+RUN npm install
 RUN npm run build
 
-# Docker container'ı çalıştığında MongoDB ve Express sunucusunu başlatmak için bir giriş noktası tanımlıyoruz.
-CMD ["npm", "run", "start"]
+# Sunucu tarafında çalıştırılacak komutları belirtin
+WORKDIR /app/server
+EXPOSE 5000
+CMD [ "npm", "start" ]
