@@ -1,10 +1,9 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import PostLoad from "./PostLoad"
-import Post from './Post';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { CardDefault } from "./CardDefault";
 
-function Posts({ userId, category }) {
+function Posts({ userId, category, event }) {
   const {
     isLoading,
     isError,
@@ -20,8 +19,13 @@ function Posts({ userId, category }) {
       if (category) {
         params.category = category;
       }
+      if (category) {
+        params.event = event;
+      }
 
-      return axios.get("http://localhost:3000/api/posts", { params }).then((res) => res.data);
+      return axios
+        .get("http://localhost:3000/api/posts", { params })
+        .then((res) => res.data);
     },
     {
       refetchOnWindowFocus: false,
@@ -31,20 +35,14 @@ function Posts({ userId, category }) {
     }
   );
 
-
   return (
     <>
-      {(isLoading || isError || error) && (
-        <>
-          <PostLoad />
-        </>
-      )}
-      {
-        posts &&
-          posts
-            .slice(0)
-            .reverse()
-            .map((post, key) => <Post key={key} post={post}/>)}
+      {posts && posts
+        .slice(0)
+        .reverse()
+        .map((post, key) => (
+          <CardDefault key={key} post={post} />
+        ))}
     </>
   );
 }

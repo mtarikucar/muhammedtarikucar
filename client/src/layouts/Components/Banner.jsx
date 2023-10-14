@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Register() {
+function Banner() {
   return (
     <div>
       
@@ -8,4 +8,4 @@ function Register() {
   )
 }
 
-export default Register
+export default Banner

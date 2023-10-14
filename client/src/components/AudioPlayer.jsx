@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
-import { FaPlay, FaPause, FaVolumeUp } from "react-icons/fa";
-import { FiChevronsRight, FiChevronsLeft } from "react-icons/fi";
+
+import { PlayIcon,PauseIcon,ArrowUpIcon, ChevronDoubleRightIcon, ChevronDoubleLeftIcon } from "@heroicons/react/24/outline";
+
 
 const formatTime = (time) => {
   const minutes = Math.floor(time / 60);
@@ -60,7 +61,7 @@ const AudioPlayer = ({ src, homepage }) => {
         onClick={togglePlay}
         className={`bg-indigo-500 text-white px-6 py-4 rounded  hover:px-8 ease-in-out duration-300 ${playing ? "px-8": ""}`}
       >
-        {playing ? <FaPause /> : <FaPlay />}
+        {playing ? <PauseIcon /> : <PlayIcon />}
       </button>
 
       {!homepage && (
@@ -70,7 +71,7 @@ const AudioPlayer = ({ src, homepage }) => {
               onClick={() => changeCurrentTime(currentTime - 5)}
               className="bg-indigo-500 text-white p-2 rounded mx-3 flex items-center"
             >
-              <FiChevronsLeft /> 5
+              <ChevronDoubleLeftIcon /> 5
             </button>
             <div className="w-full mx-3">
               <div className="mid flex-cols items-center justify-center">
@@ -92,12 +93,12 @@ const AudioPlayer = ({ src, homepage }) => {
               onClick={() => changeCurrentTime(currentTime + 5)}
               className="bg-indigo-500 text-white p-2 rounded mx-3 flex items-center"
             >
-              5 <FiChevronsRight />
+              5 <ChevronDoubleRightIcon />
             </button>
           </div>
           <div className="flex items-center justify-between w-full mt-5">
             <div className="pr-2 m-3">
-              <FaVolumeUp />
+              <ArrowUpIcon />
             </div>
 
             <input
