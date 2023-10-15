@@ -1,6 +1,6 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import axios from "../../api/axios";
 import { CardDefault } from "./CardDefault";
 
 function Posts({ userId, category, event }) {
@@ -24,7 +24,7 @@ function Posts({ userId, category, event }) {
       }
 
       return axios
-        .get("http://localhost:3000/api/posts", { params })
+        .get("/posts", { params })
         .then((res) => res.data);
     },
     {

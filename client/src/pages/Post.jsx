@@ -4,8 +4,6 @@ import { useParams } from "react-router-dom";
 import AudioPlayer from "../components/AudioPlayer";
 
 import { useQuery, useMutation } from "@tanstack/react-query";
-import axios from "axios";
-
 import {
   Timeline,
   TimelineItem,
@@ -21,11 +19,14 @@ import {
   CardBody,
   Textarea,
 } from "@material-tailwind/react";
+import axios from "../api/axios";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
 function Post() {
   const { id } = useParams();
 
   const [comment, setComment] = useState("");
+  const axiosPrivate = useAxiosPrivate()
 
   const [open, setOpen] = useState(false);
   const toggleOpen = () => setOpen((cur) => !cur);
@@ -39,7 +40,7 @@ function Post() {
   } = useQuery(
     ["post", id],
     async () => {
-      const response = await axios.get(`http://localhost:3000/api/posts/${id}`);
+      const response = await axiosPrivate.get(`/posts/${id}`);
       return response.data[0];
     },
     {
@@ -52,7 +53,7 @@ function Post() {
   // Custom Hook
   const addComment = async (postId, comment) => {
     const response = await axios.post(
-      `http://localhost:3000/api/posts/comment`,
+      `/posts/comment`,
       {
         content: comment,
         user: "6466540433004b97c36395e7",

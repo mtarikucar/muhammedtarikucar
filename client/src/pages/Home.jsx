@@ -3,7 +3,7 @@ import React from "react";
 import { AccordionCustomAnimation } from "../components/AccordionCustomAnimation";
 import { CardWithLink } from "../components/CardWithLink";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import axios from "../api/axios";
 
 function Home() {
   const {
@@ -15,7 +15,7 @@ function Home() {
     ["categories"],
     () => {
       return axios
-        .get("http://localhost:3000/api/event")
+        .get("/event")
         .then((res) => res.data);
     },
     {

@@ -1,5 +1,4 @@
 import authReducer from "./AuthSlice";
-import modal from "./modal"
 
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 
@@ -21,7 +20,6 @@ import {
   // Combine the reducers first
   const rootReducer = combineReducers({
     auth: authReducer,
-    modal: modal,
   });
   
   const persistConfig = {

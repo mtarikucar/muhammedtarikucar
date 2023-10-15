@@ -26,25 +26,13 @@ import {
   Bars2Icon,
 } from "@heroicons/react/24/outline";
 import { NavLink } from "react-router-dom";
+import { Login } from "../../components/Login";
+import useAuth from "../../hooks/useAuth";
+import { useDispatch } from "react-redux";
+import { logoutSuccess } from "../../store/AuthSlice";
 
 // profile menu component
 const profileMenuItems = [
-  {
-    label: "My Profile",
-    icon: UserCircleIcon,
-  },
-  {
-    label: "Edit Profile",
-    icon: Cog6ToothIcon,
-  },
-  {
-    label: "Inbox",
-    icon: InboxArrowDownIcon,
-  },
-  {
-    label: "Help",
-    icon: LifebuoyIcon,
-  },
   {
     label: "Sign Out",
     icon: PowerIcon,
@@ -53,6 +41,8 @@ const profileMenuItems = [
 
 function ProfileMenu() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+  const dispatch = useDispatch();
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -69,7 +59,7 @@ function ProfileMenu() {
             size="sm"
             alt="tania andrew"
             className="border border-gray-900 p-0.5"
-            src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+            src="../src/images/avatar.png"
           />
           <ChevronDownIcon
             strokeWidth={2.5}
@@ -80,12 +70,12 @@ function ProfileMenu() {
         </Button>
       </MenuHandler>
       <MenuList className="p-1">
-        {profileMenuItems.map(({ label, icon }, key) => {
+        {profileMenuItems.map(({ label, icon, handler }, key) => {
           const isLastItem = key === profileMenuItems.length - 1;
           return (
             <MenuItem
               key={label}
-              onClick={closeMenu}
+              onClick={isLastItem ? () => dispatch(logoutSuccess()) : () => {}}
               className={`flex items-center gap-2 rounded ${
                 isLastItem
                   ? "hover:bg-red-500/10 focus:bg-red-500/10 active:bg-red-500/10"
@@ -231,6 +221,7 @@ export default function NavbarCustom() {
 
   const toggleIsNavOpen = () => setIsNavOpen((cur) => !cur);
 
+  const auth = useAuth();
   React.useEffect(() => {
     window.addEventListener(
       "resize",
@@ -252,8 +243,8 @@ export default function NavbarCustom() {
         </NavLink>
         {/* <div className="absolute top-2/4 left-2/4 hidden -translate-x-2/4 -translate-y-2/4 lg:block">
           <NavList />
-        </div>
-        <IconButton
+        </div> */}
+        {/* <IconButton
           size="sm"
           color="blue-gray"
           variant="text"
@@ -261,8 +252,9 @@ export default function NavbarCustom() {
           className="ml-auto mr-2 lg:hidden"
         >
           <Bars2Icon className="h-6 w-6" />
-        </IconButton>
-        <ProfileMenu /> */}
+        </IconButton> */}
+
+        {!!!auth?.currentUser ? <Login /> : <ProfileMenu />}
       </div>
       {/* <MobileNav open={isNavOpen} className="overflow-scroll">
         <NavList />

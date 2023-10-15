@@ -11,7 +11,8 @@ import {
 } from "firebase/storage";
 import app from "../../firebase";
 
-import axios from "axios";
+
+import axios from "../api/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "react-toastify";
@@ -35,7 +36,7 @@ function Upload() {
   });
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  const { currentUser, token } = useSelector((store) => store.auth);
+  const { currentUser } = useSelector((store) => store.auth);
 
 
   const [category, setCategory] = useState("");
@@ -55,14 +56,11 @@ function Upload() {
   const mutation = useMutation(
     async (props) => {
       const response = await axios.post(
-        "http://localhost:3000/api/posts",
+        "/posts",
         props.props,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           params: {
-            id: currentUser._id,
+            id: "6465e59b33004b97c3639542",
           },
         }
       );
@@ -71,7 +69,7 @@ function Upload() {
     {
       onSuccess: () => {
         queryClient.invalidateQueries("posts"); // Invalidate 'posts' query to refetch data and update the UI
-        navigate(`/Profile/${currentUser._id}`); // Navigate to the user's profile after a successful post creation
+        navigate(`/`); // Navigate to the user's profile after a successful post creation
       },
       onError: (er) => {
         console.log(er);
@@ -145,7 +143,7 @@ function Upload() {
           materials: uploadedFiles,
           sound: voice,
           category: "uncategorized",
-          author: currentUser._id,
+          author: "6465e59b33004b97c3639542",
         },
       });
     }
@@ -167,7 +165,7 @@ function Upload() {
     <>
       <div className="container p-4 w-3/4 flex justify-center items-center md:w-full ">
         <div className="container mx-auto mt-8 ">
-          <div className="grid grid-cols-2 md:grid-cols-1 gap-4  ">
+          <div className="grid grid-cols-1 gap-4  ">
             <div className="col-span-1 border-2 rounded-lg p-4 ">
               <div className="flex justify-center mb-4 ">
                 <label className="flex flex-col items-center px-4 py-6 bg-white rounded-md shadow-md tracking-wide border border-blue cursor-pointer hover:bg-gray-200">

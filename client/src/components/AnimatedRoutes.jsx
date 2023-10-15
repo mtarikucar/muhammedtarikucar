@@ -5,11 +5,10 @@ import { AnimatePresence } from "framer-motion";
 
 import Layout from "../layouts/Layout";
 
-import Login from "../pages/Login";
-import Register from "../pages/Register";
 import Home from "../pages/Home";
 import Category from "../pages/Category";
 import Post from "../pages/Post";
+import Unauthorized from "../pages/Unautharized";
 function AnimatedRoutes() {
   const location = useLocation();
 
@@ -18,11 +17,10 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/Login" element={<Login />} />
-          <Route path="/Register" element={<Register />} />
           <Route path="/Category/:id" element={<Category />} />
           <Route path="/Post/:id" element={<Post />} />
           <Route path="/Upload" element={<Upload />} />
+          <Route path="/Unauthorized" element={<Unauthorized />} />
         </Route>
       </Routes>
     </AnimatePresence>

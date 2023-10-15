@@ -14,7 +14,6 @@ const server = http.createServer(app);
 var allowlist = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "http://18.197.123.238",
   "www.muhammedtarikucar.com",
   "muhammedtarikucar.com",
   "http://muhammedtarikucar.com",

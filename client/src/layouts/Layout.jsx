@@ -29,6 +29,7 @@ const Layout = () => {
         pauseOnFocusLoss={false}
         draggable={false}
         pauseOnHover
+        
       />
     </>
   );

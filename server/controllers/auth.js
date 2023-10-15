@@ -69,12 +69,11 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
     const user = await User.findOne({
-      name: username,
-      isActive: true,
+      email: email,
     });
 
     if (!user) {
