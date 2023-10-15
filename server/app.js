@@ -16,8 +16,8 @@ var allowlist = [
   "http://127.0.0.1:5173",
   "www.muhammedtarikucar.com",
   "muhammedtarikucar.com",
-  "http://muhammedtarikucar.com",
-  "http://www.muhammedtarikucar.com",
+  "https://muhammedtarikucar.com",
+  "https://www.muhammedtarikucar.com",
 ];
 var corsOptionsDelegate = function (req, callback) {
   var corsOptions;
