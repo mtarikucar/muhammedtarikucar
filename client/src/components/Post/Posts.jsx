@@ -4,12 +4,7 @@ import axios from "../../api/axios";
 import { CardDefault } from "./CardDefault";
 
 function Posts({ userId, category, event }) {
-  const {
-    isLoading,
-    isError,
-    data: posts,
-    error,
-  } = useQuery(
+  const { data: posts } = useQuery(
     ["posts", userId, category],
     () => {
       const params = {};
@@ -23,9 +18,7 @@ function Posts({ userId, category, event }) {
         params.event = event;
       }
 
-      return axios
-        .get("/posts", { params })
-        .then((res) => res.data);
+      return axios.get("/posts", { params }).then((res) => res.data);
     },
     {
       refetchOnWindowFocus: false,
@@ -35,16 +28,11 @@ function Posts({ userId, category, event }) {
     }
   );
 
-  return (
-    <>
-      {posts && posts
+  return posts
+    ? posts
         .slice(0)
         .reverse()
-        .map((post, key) => (
-          <CardDefault key={key} post={post} />
-        ))}
-    </>
-  );
+        .map((post, key) => <CardDefault post={post} />)
+    : null;
 }
-
 export default Posts;

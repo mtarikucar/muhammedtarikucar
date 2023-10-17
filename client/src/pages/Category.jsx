@@ -1,6 +1,5 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { CardDefault } from "../components/Post/CardDefault";
 import Posts from "../components/Post/Posts";
 import { useParams } from "react-router-dom";
 
