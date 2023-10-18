@@ -32,7 +32,7 @@ function Posts({ userId, category, event }) {
     ? posts
         .slice(0)
         .reverse()
-        .map((post, key) => <CardDefault post={post} />)
+        .map((post, key) => <CardDefault key={key} post={post} />)
     : null;
 }
 export default Posts;

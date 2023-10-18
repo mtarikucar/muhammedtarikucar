@@ -5,14 +5,24 @@ import { useParams } from "react-router-dom";
 
 function Category() {
   const { id } = useParams();
-
+  const styles = {
+    pin_container: {
+      gridTemplateColumns: "repeat(auto-fill, 325px)",
+      gridAutoRows: "10px",
+      left: "50%",
+      transform: "translateX(-50%)",
+    },
+  };
   return (
     <motion.div
       initial={{ width: 0 }}
       animate={{ width: "100%" }}
-      exit={{ x: '100%', transition: { duration: 0.1 } }}
+      exit={{ x: "100%", transition: { duration: 0.1 } }}
     >
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div
+        className="w-full absolute grid justify-center "
+        style={styles.pin_container}
+      >
         <Posts event={id} />
       </div>
     </motion.div>

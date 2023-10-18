@@ -29,7 +29,7 @@ export function SpeedDialWithTextOutside() {
 
   const auth = useAuth();
   return (
-    <div className="fixed bottom-5 right-5">
+    <div className="fixed bottom-5 right-5 z-50">
       <SpeedDial open={open} handler={setOpen}>
         <SpeedDialHandler onClick={() => setOpen(!open)}>
           <IconButton size="lg" className="rounded-full">

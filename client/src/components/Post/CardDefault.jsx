@@ -53,17 +53,51 @@ export function CardDefault({ post }) {
     return null;
   };
 
+  const styles = {
+    card: {
+      margin: "15px 10px",
+      padding: 0,
+      borderRadius: "16px",
+    },
+    
+  };
+
+  const calculateDynamicHeight = (titleLength, contentLength) => {
+    const baseValue = 40; // temel değer
+    contentLength =
+      contentLength > 200 ? 200 : contentLength < 15 ? 15 : contentLength;
+    titleLength = titleLength > 200 ? 200 : titleLength < 35 ? 35 : titleLength;
+    const additionalValue = (contentLength / 14) + (titleLength / 10);
+
+    return baseValue + parseInt(additionalValue);
+  };
+
+  const dynamicHeightStyle = {
+    gridRowEnd: `span ${calculateDynamicHeight(
+      post.title.length,
+      post.content.length
+    )}`,
+  };
+
+  console.log(post.title.length, post.content.length);
   return (
-    <div>
-      <Card className="mt-6 h-fit hover:-translate-y-2 group ease-in-out duration-300 hover:drop-shadow-xl border-dashed border-2 border-gray-300 flex flex-col">
-        <div className="absolute h inset-0 bg-gradient-to-t from-white via-white to-transparent z-20 group-hover:to-white ease-in-out duration-300 rounded-lg"></div>
-        <CardBody className="flex-grow relative">
-          <div className="absolute inset-0 z-10 rounded-md">{renderMaterial()}</div>
+    <div
+      style={{
+        ...styles.card,
+        ...dynamicHeightStyle,
+      }}
+    >
+      <Card className=" h-full hover:-translate-y-2 group ease-in-out duration-300 hover:drop-shadow-xl border-dashed border-2 border-gray-300">
+        <div className="absolute  inset-0 bg-gradient-to-t from-white via-white to-transparent z-20 group-hover:via-60% ease-in-out duration-300 rounded-lg"></div>
+        <CardBody className="flex-grow relative h-fit">
+          <div className="absolute  inset-0 z-10 rounded-md">
+            {renderMaterial()}
+          </div>
 
           <Typography
             variant="h5"
             color="blue-gray"
-            className="mb-2 z-30 relative"
+            className="mb-2 z-30 relative mt-32"
           >
             <NavLink to={`/Post/${post._id}`}>{post.title}</NavLink>
           </Typography>

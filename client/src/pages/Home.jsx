@@ -31,15 +31,13 @@ function Home() {
       animate={{ width: "100%" }}
       exit={{ x: window.innerWidth, transition: { duration: 0.1 } }}
     >
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {posts && posts?.map((post, key) => (
             <CardWithLink key={key} post={post} />
           ))}
       </div>
 
-      <div className="mt-6">
-        <AccordionCustomAnimation />
-      </div>
+    
     </motion.div>
   );
 }

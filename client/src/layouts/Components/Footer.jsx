@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
-    <footer className=" relative bottom-0 flex w-full flex-col  items-center justify-center  gap-x-12 border-t border-blue-gray-50 py-2 text-center md:justify-between backdrop-blur-lg">
+    <footer className=" fixed  bottom-0 flex w-full flex-col  items-center justify-center  gap-x-12 border-t border-blue-gray-50 py-2 text-center md:justify-between backdrop-blur-lg">
       <Typography color="blue-gray" className="font-normal">
         &copy; Muhammed Tarık Uçar
       </Typography>
