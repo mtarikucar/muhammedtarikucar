@@ -21,12 +21,14 @@ import {
 } from "@material-tailwind/react";
 import axios from "../api/axios";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAuth from "../hooks/useAuth";
 
 function Post() {
   const { id } = useParams();
 
   const [comment, setComment] = useState("");
   const axiosPrivate = useAxiosPrivate()
+  const auth = useAuth();
 
   const [open, setOpen] = useState(false);
   const toggleOpen = () => setOpen((cur) => !cur);
@@ -44,15 +46,12 @@ function Post() {
       return response.data[0];
     },
     {
-      enabled: !!id, // Only run the query if the "id" is available.
-      onSuccess: (data) => {
-        console.log(data);
-      },
+      enabled: !!id
     }
   );
   // Custom Hook
   const addComment = async (postId, comment) => {
-    const response = await axios.post(
+    const response = await axiosPrivate.post(
       `/posts/comment`,
       {
         content: comment,
@@ -88,8 +87,9 @@ function Post() {
     return <div>Error: {error.message}</div>;
   }
 
+  console.log(auth);
   return (
-    <div className=" flex flex-col items-center justify-center min-h-screen">
+    <div className=" flex flex-col items-center justify-center ">
       <div>
         <Button onClick={toggleOpen} className="w-full">
           Materyalleri göster
@@ -120,7 +120,7 @@ function Post() {
                 ))}
 
                 {post?.sound && (
-                  <div className="custom-audio-player">
+                  <div className="w-full p-2">
                     <AudioPlayer src={post?.sound} />
                   </div>
                 )}
@@ -138,42 +138,43 @@ function Post() {
             className="break-words"
           ></div>
         </p>
-
-        <div className="w-full">
-          <h3 className="font-bold text-xl">Yorumlar</h3>
-          <form onSubmit={handleCommentSubmit} className="flex my-4">
-            <div className="w-full">
-              <Textarea
-                variant="outlined"
-                rows={2}
-                value={comment}
-                label="yorum"
-                className="w-full"
-                onChange={(e) => setComment(e.target.value)}
-              />
-              <div className="flex w-full justify-end py-1.5">
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    color="red"
-                    variant="text"
-                    className="rounded-md"
-                    onClick={() => setComment("")}
-                  >
-                    iptal
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="rounded-md"
-                    onClick={handleCommentSubmit}
-                  >
-                    gönder
-                  </Button>
+        {auth.currentUser &&
+          <div className="w-full">
+            <h3 className="font-bold text-xl">Yorumlar</h3>
+            <form onSubmit={handleCommentSubmit} className="flex my-4">
+              <div className="w-full">
+                <Textarea
+                  variant="outlined"
+                  rows={2}
+                  value={comment}
+                  label="yorum"
+                  className="w-full"
+                  onChange={(e) => setComment(e.target.value)}
+                />
+                <div className="flex w-full justify-end py-1.5">
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      color="red"
+                      variant="text"
+                      className="rounded-md"
+                      onClick={() => setComment("")}
+                    >
+                      iptal
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="rounded-md"
+                      onClick={handleCommentSubmit}
+                    >
+                      gönder
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </form>
-        </div>
+            </form>
+          </div>
+        }
         <div className="px-8 mb-6 text-base container">
           <ul className="container">
             {post.comments.map((comment, index) => (

@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 
 import RichTextEditor from "../components/RichTextEditor";
 
-import { Select, Option, Button, Input } from "@material-tailwind/react";
+import { Select, Option } from "@material-tailwind/react";
 
 function Upload() {
   const navigate = useNavigate();
@@ -29,6 +29,7 @@ function Upload() {
   const [voice, setVoice] = useState();
   const titleRef = useRef();
   const [isAll, setIsAll] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   const [prog, setProg] = useState({
     percent: 0,
@@ -40,7 +41,6 @@ function Upload() {
 
 
   const [category, setCategory] = useState("");
-  const onChange = ({ target }) => setCategory(target.value);
 
 
   const handleFileUpload = (event) => {
@@ -87,12 +87,11 @@ function Upload() {
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        // Observe state change events such as progress, pause, and resume
-        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+
         const progress =
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
 
-        /* console.log("Upload is " + progress + "% done"); */
+
         switch (snapshot.state) {
           case "paused":
             console.log("Upload is paused");
@@ -136,14 +135,15 @@ function Upload() {
         percent: 0,
         state: false,
       });
+      console.log(category);
       mutation.mutate({
         props: {
           title: titleRef.current.value,
           content: content,
           materials: uploadedFiles,
           sound: voice,
-          category: "uncategorized",
-          author: "6465e59b33004b97c3639542",
+          category: category,
+          author: currentUser._id,
         },
       });
     }
@@ -160,6 +160,22 @@ function Upload() {
       await upload(file.file);
     }
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('/event'); 
+        setCategories(response.data); 
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        
+      }
+    };
+
+    
+    fetchCategories();
+  }, []); 
+
 
   return (
     <>
@@ -209,29 +225,38 @@ function Upload() {
 
             <div className="col-span-1 border-2 rounded-lg p-4">
               <div className="flex flex-row items-center justify-center p-2 m-4 ">
-                <Select variant="standard" label="Select Version">
-                  <Option>Categori gelcek</Option>
-                  <div className="relative flex w-full max-w-[24rem] mt-3">
-                    <Input
-                      type="email"
-                      label="kategori ekle"
-                      value={category}
-                      onChange={onChange}
-                      className="pr-20"
-                      containerProps={{
-                        className: "min-w-0",
-                      }}
-                    />
-                    <Button
-                      size="sm"
-                      color={category ? "gray" : "blue-gray"}
-                      disabled={!category}
-                      className="!absolute right-1 top-1 rounded"
-                    >
-                      Ekle
-                    </Button>
-                  </div>
+                <Select
+                  label="Select Category"
+                  onChange={(value) => setCategory(value)}
+
+                  variant="outlined"
+                >
+                  {categories.map((cat, index) => (
+                    <Option key={index} value={cat._id}>
+                      {cat.title}
+                    </Option>
+                  ))}
                 </Select>
+                {/* <div className="relative flex w-full max-w-[24rem] mt-3">
+                  <Input
+                    type="email"
+                    label="kategori ekle"
+                    value={category}
+                    onChange={onChange}
+                    className="pr-20"
+                    containerProps={{
+                      className: "min-w-0",
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    color={category ? "gray" : "blue-gray"}
+                    disabled={!category}
+                    className="!absolute right-1 top-1 rounded"
+                  >
+                    Ekle
+                  </Button>
+                </div> */}
                 <input
                   className="border-2 p-2 m-2 rounded-md border-gray-300 focus:backdrop-blur-xl "
                   type="text"

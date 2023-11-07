@@ -47,7 +47,7 @@ export function Login() {
 
   return (
     <>
-      <Button  onClick={handleOpen}>Giriş yap</Button>
+      <Button onClick={handleOpen}>Giriş yap</Button>
       <Dialog
         size="xs"
         open={open}

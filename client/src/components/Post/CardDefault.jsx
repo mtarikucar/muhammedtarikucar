@@ -87,8 +87,8 @@ export function CardDefault({ post }) {
         ...dynamicHeightStyle,
       }}
     >
-      <Card className=" h-full hover:-translate-y-2 group ease-in-out duration-300 hover:drop-shadow-xl border-dashed border-2 border-gray-300">
-        <div className="absolute  inset-0 bg-gradient-to-t from-white via-white to-transparent z-20 group-hover:via-60% ease-in-out duration-300 rounded-lg"></div>
+      <Card className="h-full hover:-translate-y-2 group ease-in-out duration-300 hover:drop-shadow-xl border-dashed border-2 border-gray-300 p-1">
+        <div className="absolute  inset-0 bg-gradient-to-t from-white via-white to-transparent z-20 group-hover:via-60% ease-in-out duration-300 rounded-md"></div>
         <CardBody className="flex-grow relative h-fit">
           <div className="absolute  inset-0 z-10 rounded-md">
             {renderMaterial()}
@@ -118,7 +118,7 @@ export function CardDefault({ post }) {
             <Button>incele</Button>
           </NavLink>
           <span className="flex flex-col items-center">
-            <CustomRatingIcon />
+           {/*  <CustomRatingIcon /> */}
             <p className="text-xs font-medium flex flex-row justify-end my-1">
               {formattedDate}
             </p>

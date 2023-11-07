@@ -5,18 +5,16 @@ import { CardDefault } from "./CardDefault";
 
 function Posts({ userId, category, event }) {
   const { data: posts } = useQuery(
-    ["posts", userId, category],
+    ["posts", userId],
     () => {
       const params = {};
       if (userId) {
         params.userId = userId;
       }
-      if (category) {
-        params.category = category;
+      if (event) {
+        params.category = event;
       }
-      if (category) {
-        params.event = event;
-      }
+
 
       return axios.get("/posts", { params }).then((res) => res.data);
     },

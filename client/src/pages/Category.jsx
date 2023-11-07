@@ -18,9 +18,10 @@ function Category() {
       initial={{ width: 0 }}
       animate={{ width: "100%" }}
       exit={{ x: "100%", transition: { duration: 0.1 } }}
+      
     >
       <div
-        className="w-full absolute grid justify-center "
+        className="w-5/6 absolute grid justify-center "
         style={styles.pin_container}
       >
         <Posts event={id} />
