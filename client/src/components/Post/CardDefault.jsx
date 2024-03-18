@@ -6,7 +6,6 @@ import {
   Typography,
   Button,
 } from "@material-tailwind/react";
-import { CustomRatingIcon } from "../CustomRatingIcon";
 import { NavLink } from "react-router-dom";
 
 export function CardDefault({ post }) {
