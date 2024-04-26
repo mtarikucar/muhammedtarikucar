@@ -38,7 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 mongoose
   .connect(
     process.env.NODE_ENV && process.env.NODE_ENV == "development"
-      ? "mongodb://localhost/muhammedtarikucar"
+      ? process.env.MONGO_URI
       : process.env.MONGO_URI
   )
   .then(() => console.log("connected to database"))

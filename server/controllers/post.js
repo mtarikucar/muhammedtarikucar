@@ -49,6 +49,15 @@ async function getPost(req, res, next) {
       path: "comments",
       populate: ({path:"user",select:"name image"}),
     });
+
+    if (posts.length === 1 && id) {
+      console.log("views arttırıldı");
+      posts[0].views += 1;
+      posts[0].viewer.push({ ip: req.ip, date: new Date() });
+      await posts[0].save();
+    }
+
+
     res.json(posts);
   } catch (er) {
     console.log(er);
