@@ -49,7 +49,7 @@ function Sidebars() {
             {currentUser && (
               <>
                 <li className="p-3">
-                  <NavLink to={`/Profile/${currentUser._id}`}>
+                  <NavLink to={`/Profile/6465e59b33004b97c3639542`}>
                     <div className="sidebar-icon flex flex-row hover:drop-shadow-xl rounded border-gray-500 p-2 hover:border-blue-600 hover:bg-gray-100 group">
                       <span
                         className="transititext-primary text-primary transition duration-150 rounded-xl ease-in-out hover:text-primary-600 focus:text-primary-600 active:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500 dark:focus:text-primary-500 dark:active:text-primary-600"

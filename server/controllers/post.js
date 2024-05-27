@@ -3,6 +3,8 @@ const Posts = require("../models/Post.model");
 
 async function addPost(req, res, next) {
   try {
+    console.log("addPost çalıştı")
+    console.log(req.body)
     const { title, content, materials, sound, category, author, event } = req.body;
     const data = await Posts.create({
       title: title,

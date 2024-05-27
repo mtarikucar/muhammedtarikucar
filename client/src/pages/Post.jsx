@@ -5,19 +5,8 @@ import AudioPlayer from "../components/AudioPlayer";
 
 import {useQuery, useMutation} from "@tanstack/react-query";
 import {
-    Timeline,
-    TimelineItem,
-    TimelineConnector,
-    TimelineHeader,
-    TimelineIcon,
-    TimelineBody,
-    Typography,
-    Avatar,
-    Collapse,
-    Button,
     Card,
     CardBody,
-    Textarea, Carousel,
 } from "@material-tailwind/react";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useAuth from "../hooks/useAuth";
@@ -85,7 +74,7 @@ function Post() {
 
     console.log(auth);
     return (
-        <div className=" flex flex-col items-center justify-center ">
+        <div className=" grid sm:grid-cols-2 items-center justify-center ">
             <div>
 
                     <Card className="my-4">
@@ -129,43 +118,6 @@ function Post() {
                         className="break-words"
                     ></div>
                 </p>
-                {auth.currentUser &&
-                    <div className="w-full">
-                        <h3 className="font-bold text-xl">Yorumlar</h3>
-                        <form onSubmit={handleCommentSubmit} className="flex my-4">
-                            <div className="w-full">
-                                <Textarea
-                                    variant="outlined"
-                                    rows={2}
-                                    value={comment}
-                                    label="yorum"
-                                    className="w-full"
-                                    onChange={(e) => setComment(e.target.value)}
-                                />
-                                <div className="flex w-full justify-end py-1.5">
-                                    <div className="flex gap-2">
-                                        <Button
-                                            size="sm"
-                                            color="red"
-                                            variant="text"
-                                            className="rounded-md"
-                                            onClick={() => setComment("")}
-                                        >
-                                            iptal
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            className="rounded-md"
-                                            onClick={handleCommentSubmit}
-                                        >
-                                            gönder
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                }
             </div>
         </div>
     )

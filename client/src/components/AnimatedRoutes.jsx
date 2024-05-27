@@ -9,6 +9,7 @@ import Home from "../pages/Home";
 import Category from "../pages/Category";
 import Post from "../pages/Post";
 import Unauthorized from "../pages/Unautharized";
+import {Login} from "./Login.jsx";
 function AnimatedRoutes() {
   const location = useLocation();
 
@@ -18,6 +19,7 @@ function AnimatedRoutes() {
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/Category/:id" element={<Category />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/Post/:id" element={<Post />} />
           <Route path="/Upload" element={<Upload />} />
           <Route path="/Unauthorized" element={<Unauthorized />} />

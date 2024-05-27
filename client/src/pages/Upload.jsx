@@ -143,7 +143,7 @@ function Upload() {
           materials: uploadedFiles,
           sound: voice,
           category: category,
-          author: currentUser._id,
+          author: "6465e59b33004b97c3639542",
         },
       });
     }
