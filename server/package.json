@@ -1,23 +1,39 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Robust API server",
+  "main": "app.js",
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
-  "author": "",
+  "author": "Muhammed Tarik Ucar",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "helmet": "^6.1.5",
+    "joi": "^17.9.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.0",
+    "socket.io": "^4.6.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.3",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "jest": "^29.5.0",
     "nodemon": "^3.1.0",
-    "socket.io": "^4.6.1"
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }

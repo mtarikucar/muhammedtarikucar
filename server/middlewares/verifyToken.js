@@ -1,48 +1,108 @@
-const JWT = require('jsonwebtoken');
+/**
+ * Authentication middleware
+ * Provides middleware functions for token verification and authorization
+ */
+const { verifyToken } = require('../utils/auth');
+const config = require('../config');
+const { AppError } = require('./errorHandler');
+const { logger } = require('../utils/logger');
 
-
-module.exports.verifyToken = (req, res, next) => {
-  const authorization = req.get('Authorization');
-
-  !authorization && res.status(400).json({ message: 'Not authenticated!' });
-  
-  
-  const token = authorization.split(' ')[1];
-  
-
-  let payload;
+/**
+ * Verifies JWT token from Authorization header
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+const authenticate = (req, res, next) => {
   try {
-    /* Returns the payload if the signature is valid.
-    If not, it will throw the error. */
-    payload = JWT.verify(token, process.env.JWT_SECRET);
+    // Get authorization header
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return next(AppError.unauthorized('Authorization header is required'));
+    }
+
+    // Check if authorization header has correct format
+    const parts = authHeader.split(' ');
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+      return next(AppError.unauthorized('Authorization header must be in format: Bearer [token]'));
+    }
+
+    const token = parts[1];
+
+    // Verify token
+    const payload = verifyToken(token, config.jwt.secret);
+
+    // Set user in request object
+    req.user = payload;
+
+    next();
   } catch (error) {
-    res.status(500).json({
-      msg:"token decoder error",
-      error
-    });
+    logger.error('Authentication error:', error);
+    next(error);
   }
-  req.user = payload;
-  next();
 };
 
+/**
+ * Verifies if user is authorized to access resource
+ * User must be the owner of the resource or have member role
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+const authorizeUser = (req, res, next) => {
+  try {
+    // First authenticate the user
+    authenticate(req, res, (err) => {
+      if (err) return next(err);
 
-module.exports.verifyTokenAndAuth = (req, res, next) => {
-  this.verifyToken(req, res, () => {
-    if (req.user.id === req.params.id || (req.user.role == "member")) {
-      next();
-    } else {
-      res.status(403).json('You are not allowed to do that!');
-    }
-  });
+      // Check if user is authorized
+      const isOwner = req.params.id && req.user.id === req.params.id;
+      const isMember = req.user.role === 'member';
+
+      if (isOwner || isMember) {
+        return next();
+      }
+
+      return next(AppError.forbidden('You are not authorized to perform this action'));
+    });
+  } catch (error) {
+    logger.error('Authorization error:', error);
+    next(error);
+  }
 };
 
-module.exports.verifyIsAdmin = (req, res, next) => {
-  this.verifyToken(req, res, () => {
-    /* console.log(req.params); */
-    if (req.user.id === req.params.id || req.user.role == "admin" ) {
-      next();
-    } else {
-      res.status(403).json('You are not allowed to do that!');
-    }
-  });
+/**
+ * Verifies if user is an admin
+ * User must be the owner of the resource or have admin role
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+const authorizeAdmin = (req, res, next) => {
+  try {
+    // First authenticate the user
+    authenticate(req, res, (err) => {
+      if (err) return next(err);
+
+      // Check if user is authorized
+      const isOwner = req.params.id && req.user.id === req.params.id;
+      const isAdmin = req.user.role === 'admin';
+
+      if (isOwner || isAdmin) {
+        return next();
+      }
+
+      return next(AppError.forbidden('Admin access required'));
+    });
+  } catch (error) {
+    logger.error('Admin authorization error:', error);
+    next(error);
+  }
+};
+
+module.exports = {
+  verifyToken: authenticate,
+  verifyTokenAndAuth: authorizeUser,
+  verifyIsAdmin: authorizeAdmin
 };

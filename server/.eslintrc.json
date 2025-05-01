@@ -1,0 +1,37 @@
+{
+  "env": {
+    "node": true,
+    "es6": true,
+    "jest": true
+  },
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
+  "rules": {
+    "no-console": "warn",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "semi": ["error", "always"],
+    "quotes": ["error", "single"],
+    "indent": ["error", 2],
+    "comma-dangle": ["error", "always-multiline"],
+    "arrow-parens": ["error", "always"],
+    "no-var": "error",
+    "prefer-const": "error",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "brace-style": ["error", "1tbs"],
+    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }],
+    "no-trailing-spaces": "error",
+    "object-curly-spacing": ["error", "always"],
+    "array-bracket-spacing": ["error", "never"],
+    "space-in-parens": ["error", "never"],
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "never",
+      "asyncArrow": "always"
+    }],
+    "keyword-spacing": ["error", { "before": true, "after": true }],
+    "space-infix-ops": "error"
+  }
+}

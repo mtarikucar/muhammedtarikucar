@@ -16,12 +16,13 @@ import App from "./App";
 const queryClient = new QueryClient();
 
 import { ThemeProvider } from "@material-tailwind/react";
+import { materialTailwindTheme } from "./theme";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <>
     <Router>
       <Provider store={store}>
-        <ThemeProvider>
+        <ThemeProvider value={materialTailwindTheme}>
           <PersistGate loading={null} persistor={persistor}>
             <QueryClientProvider client={queryClient}>
               <App />
