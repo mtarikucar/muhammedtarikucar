@@ -1,0 +1,86 @@
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: blog_mongodb_dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: blog_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - blog_network_dev
+
+  # Redis Cache
+  redis:
+    image: redis:7.2-alpine
+    container_name: blog_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - blog_network_dev
+
+  # Backend Server (Development mode with hot reload)
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: blog_server_dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/blog_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+      CLIENT_URL: http://localhost:3000
+    ports:
+      - "5000:5000"
+      - "9229:9229" # Debug port
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./server/uploads:/app/uploads
+      - ./server/logs:/app/logs
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - blog_network_dev
+    command: npm run dev
+
+  # Frontend Client (Development mode with hot reload)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: blog_client_dev
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - blog_network_dev
+    command: npm run dev
+
+volumes:
+  mongodb_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+networks:
+  blog_network_dev:
+    driver: bridge

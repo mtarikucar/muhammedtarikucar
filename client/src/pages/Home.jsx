@@ -11,175 +11,237 @@ import {
   CardBody,
   CardFooter,
   Spinner,
+  Chip,
+  Avatar,
 } from "@material-tailwind/react";
-import { CardWithLink } from "../components/CardWithLink";
+import BlogHero from "../components/Blog/BlogHero";
+import BlogCard from "../components/Blog/BlogCard";
+import BlogSidebar from "../components/Blog/BlogSidebar";
+import {
+  CodeBracketIcon,
+  DevicePhoneMobileIcon,
+  CpuChipIcon,
+  AcademicCapIcon,
+  BriefcaseIcon,
+  HeartIcon,
+  BookOpenIcon,
+  WrenchScrewdriverIcon,
+} from "@heroicons/react/24/outline";
 
 function Home() {
-  const { data: categories, isLoading: categoriesLoading } = useQuery(
-    ["categories"],
-    () => {
-      return axios.get("/event").then((res) => res.data);
-    },
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
-
-  const { data: featuredPosts, isLoading: postsLoading } = useQuery(
+  // Fetch featured posts
+  const { data: featuredPosts, isLoading: featuredLoading } = useQuery(
     ["featuredPosts"],
     () => {
-      return axios.get("/posts").then((res) => res.data.slice(0, 3));
+      return axios.get("/posts/featured?limit=1").then((res) => res.data.data.posts);
     },
     {
       refetchOnWindowFocus: false,
     }
   );
 
-  const isLoading = categoriesLoading || postsLoading;
+  // Fetch recent posts
+  const { data: recentPosts, isLoading: recentLoading } = useQuery(
+    ["recentPosts"],
+    () => {
+      return axios.get("/posts/recent?limit=6").then((res) => res.data.data.posts);
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  // Fetch popular posts
+  const { data: popularPosts, isLoading: popularLoading } = useQuery(
+    ["popularPosts"],
+    () => {
+      return axios.get("/posts/popular?limit=5").then((res) => res.data.data.posts);
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const categories = [
+    { name: 'Teknoloji', icon: CpuChipIcon, slug: 'technology', color: 'blue' },
+    { name: 'Programlama', icon: CodeBracketIcon, slug: 'programming', color: 'green' },
+    { name: 'Web Geliştirme', icon: WrenchScrewdriverIcon, slug: 'web-development', color: 'purple' },
+    { name: 'Mobil', icon: DevicePhoneMobileIcon, slug: 'mobile', color: 'orange' },
+    { name: 'Yapay Zeka', icon: CpuChipIcon, slug: 'ai', color: 'red' },
+    { name: 'Kariyer', icon: BriefcaseIcon, slug: 'career', color: 'indigo' },
+    { name: 'Kişisel', icon: HeartIcon, slug: 'personal', color: 'pink' },
+    { name: 'Eğitim', icon: AcademicCapIcon, slug: 'tutorial', color: 'teal' },
+  ];
+
+  const isLoading = featuredLoading || recentLoading;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="space-y-16"
+      className="min-h-screen"
     >
-      {/* Hero Section */}
-      <section className="relative py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary-600 to-primary-800 rounded-xl overflow-hidden">
-        <div className="absolute inset-0 bg-pattern opacity-10"></div>
-        <div className="relative max-w-3xl mx-auto text-center">
-          <Typography variant="h1" color="white" className="mb-6">
-            Welcome to My Blog
-          </Typography>
-          <Typography variant="lead" color="white" className="mb-8 opacity-80">
-            Explore my thoughts, projects, and experiences in technology, development, and more.
-          </Typography>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" color="white" variant="filled" as={Link} to="/categories">
-              Explore Categories
-            </Button>
-            <Button size="lg" color="white" variant="outlined" as={Link} to="/about">
-              About Me
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* Hero Section with Featured Post */}
+      {featuredPosts && featuredPosts.length > 0 && (
+        <BlogHero featuredPost={featuredPosts[0]} />
+      )}
 
-      {/* Featured Posts Section */}
-      <section>
-        <div className="flex justify-between items-center mb-8">
-          <Typography variant="h3" color="blue-gray">
-            Featured Posts
-          </Typography>
-          <Button variant="text" color="blue" as={Link} to="/blog">
-            View All
-          </Button>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <Spinner className="h-12 w-12" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredPosts && featuredPosts.map((post) => (
-              <Card key={post._id} className="overflow-hidden">
-                <CardHeader
-                  floated={false}
-                  shadow={false}
-                  color="transparent"
-                  className="m-0 h-40 bg-gray-200"
-                >
-                  {post.materials && post.materials[0] && (
-                    <img
-                      src={post.materials[0].url}
-                      alt={post.title}
-                      className="h-full w-full object-cover"
-                    />
-                  )}
-                </CardHeader>
-                <CardBody>
-                  <Typography variant="h5" color="blue-gray" className="mb-2 line-clamp-1">
-                    {post.title}
-                  </Typography>
-                  <Typography color="gray" className="font-normal mb-4 line-clamp-3">
-                    {post.content}
-                  </Typography>
-                </CardBody>
-                <CardFooter className="pt-0">
-                  <Button
-                    variant="text"
-                    color="blue"
-                    className="flex items-center gap-2"
-                    as={Link}
-                    to={`/post/${post._id}`}
-                  >
-                    Read More
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"
-                      />
-                    </svg>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-12">
+            {/* About Section */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center py-12"
+            >
+              <div className="flex justify-center mb-6">
+                <Avatar
+                  src="/profile-photo.jpg"
+                  alt="Muhammed Tarik Ucar"
+                  size="xxl"
+                  className="border-4 border-white shadow-xl"
+                />
+              </div>
+              <Typography variant="h2" color="blue-gray" className="mb-4">
+                Merhaba, Ben Muhammed Tarik Ucar
+              </Typography>
+              <Typography variant="lead" color="gray" className="max-w-3xl mx-auto mb-6">
+                Yazılım geliştirici, teknoloji tutkunu ve sürekli öğrenen biriyim.
+                Bu blogda teknoloji, programlama ve kişisel deneyimlerimi paylaşıyorum.
+              </Typography>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link to="/blog">
+                  <Button color="blue" variant="gradient" size="lg">
+                    Blog Yazılarını Keşfet
                   </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+                </Link>
+                <Link to="/about">
+                  <Button color="blue" variant="outlined" size="lg">
+                    Hakkımda
+                  </Button>
+                </Link>
+              </div>
+            </motion.section>
 
-      {/* Categories Section */}
-      <section>
-        <div className="flex justify-between items-center mb-8">
-          <Typography variant="h3" color="blue-gray">
-            Categories
-          </Typography>
-          <Button variant="text" color="blue" as={Link} to="/categories">
-            View All
-          </Button>
-        </div>
+            {/* Recent Posts Section */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="flex justify-between items-center mb-8">
+                <Typography variant="h3" color="blue-gray">
+                  Son Yazılar
+                </Typography>
+                <Link to="/blog">
+                  <Button variant="text" color="blue" className="flex items-center gap-2">
+                    Tümünü Gör
+                    <BookOpenIcon className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <Spinner className="h-12 w-12" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories && categories.map((category) => (
-              <CardWithLink key={category._id} post={category} />
-            ))}
-          </div>
-        )}
-      </section>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <Spinner className="h-12 w-12" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {recentPosts && recentPosts.slice(0, 4).map((post) => (
+                    <BlogCard key={post._id} post={post} />
+                  ))}
+                </div>
+              )}
+            </motion.section>
 
-      {/* Newsletter Section */}
-      <section className="bg-gray-100 rounded-xl p-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <Typography variant="h4" color="blue-gray" className="mb-4">
-            Subscribe to My Newsletter
-          </Typography>
-          <Typography color="gray" className="font-normal mb-6">
-            Stay updated with my latest posts, projects, and announcements.
-          </Typography>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            {/* Categories Section */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <div className="flex justify-between items-center mb-8">
+                <Typography variant="h3" color="blue-gray">
+                  Kategoriler
+                </Typography>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {categories.map((category, index) => {
+                  const IconComponent = category.icon;
+                  return (
+                    <motion.div
+                      key={category.slug}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Link to={`/blog/category/${category.slug}`}>
+                        <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+                          <CardBody className="text-center p-6">
+                            <div className={`w-12 h-12 mx-auto mb-4 rounded-full bg-${category.color}-100 flex items-center justify-center`}>
+                              <IconComponent className={`h-6 w-6 text-${category.color}-600`} />
+                            </div>
+                            <Typography variant="h6" color="blue-gray">
+                              {category.name}
+                            </Typography>
+                          </CardBody>
+                        </Card>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.section>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <BlogSidebar
+              popularPosts={popularPosts || []}
+              recentPosts={recentPosts || []}
+              categories={categories.map(cat => ({ _id: cat.slug, count: 0 }))}
+              tags={[]}
             />
-            <Button color="blue">Subscribe</Button>
           </div>
         </div>
-      </section>
+
+        {/* Newsletter Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-8 text-white"
+        >
+          <div className="max-w-3xl mx-auto text-center">
+            <Typography variant="h3" className="mb-4">
+              Bültenime Abone Ol
+            </Typography>
+            <Typography variant="lead" className="mb-8 opacity-90">
+              Yeni yazılarımdan, projelerimden ve duyurularımdan haberdar olmak için
+              e-posta adresini bırak.
+            </Typography>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="E-posta adresin"
+                className="flex-1 px-4 py-3 rounded-lg border-0 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+              />
+              <Button color="white" variant="filled" size="lg" className="text-blue-600">
+                Abone Ol
+              </Button>
+            </div>
+            <Typography variant="small" className="mt-4 opacity-75">
+              Spam yapmıyoruz. İstediğin zaman abonelikten çıkabilirsin.
+            </Typography>
+          </div>
+        </motion.section>
+      </div>
     </motion.div>
   );
 }

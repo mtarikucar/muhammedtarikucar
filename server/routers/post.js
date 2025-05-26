@@ -1,14 +1,38 @@
-const {addPost,getPost,deletePost,addComment,deleteComment,toggleLike} = require("../controllers/post")
-const {verifyTokenAndAuth} = require("../middlewares/verifyToken")
+const {
+  createPost,
+  getPosts,
+  getPostBySlug,
+  updatePost,
+  deletePost,
+  addComment,
+  moderateComment,
+  deleteComment,
+  toggleLike,
+  getFeaturedPosts,
+  getPopularPosts,
+  getRecentPosts,
+  getPostsByCategory
+} = require("../controllers/post");
+const { verifyTokenAndAuth, verifyTokenAndAdmin } = require("../middlewares/verifyToken");
 const router = require("express").Router();
 
-router.get("/",getPost)
-router.get("/:id",getPost)
-router.post("/",addPost)
-router.delete("/:id",verifyTokenAndAuth,deletePost)
+// Public routes
+router.get("/", getPosts);
+router.get("/featured", getFeaturedPosts);
+router.get("/popular", getPopularPosts);
+router.get("/recent", getRecentPosts);
+router.get("/category/:category", getPostsByCategory);
+router.get("/:slug", getPostBySlug);
 
-router.post('/comment', addComment);
-router.delete('/comment/:postId/:commentId',verifyTokenAndAuth, deleteComment);
-router.post('/like',verifyTokenAndAuth, toggleLike);
+// Comment routes (public for adding, admin for moderation)
+router.post('/:slug/comments', addComment);
+router.post('/:slug/like', toggleLike);
 
-module.exports = router
+// Admin routes
+router.post("/", verifyTokenAndAdmin, createPost);
+router.put("/:id", verifyTokenAndAdmin, updatePost);
+router.delete("/:id", verifyTokenAndAdmin, deletePost);
+router.patch("/comments/:postId/:commentId", verifyTokenAndAdmin, moderateComment);
+router.delete("/comments/:postId/:commentId", verifyTokenAndAdmin, deleteComment);
+
+module.exports = router;

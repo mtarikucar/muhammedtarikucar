@@ -7,6 +7,8 @@ import Layout from "../layouts/Layout";
 
 // Pages
 import Home from "../pages/Home";
+import Blog from "../pages/Blog";
+import BlogPost from "../pages/BlogPost";
 import Category from "../pages/Category";
 import Post from "../pages/Post";
 import Upload from "../pages/Upload";
@@ -31,7 +33,9 @@ function AnimatedRoutes() {
         <Route element={<Layout />}>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/blog" element={<Home />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/blog/category/:category" element={<Blog />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/category/:id" element={<Category />} />
           <Route path="/post/:id" element={<Post />} />

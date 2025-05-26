@@ -1,8 +1,127 @@
-# Muhammed Tarik Ucar Website
+# Muhammed Tarik Ucar - Kişisel Blog Sitesi
 
-This is the codebase for Muhammed Tarik Ucar's personal website and API.
+Modern, responsive ve tam özellikli kişisel blog sitesi. React, Node.js, MongoDB ve Docker ile geliştirilmiştir.
 
-## Project Structure
+## 🚀 Özellikler
+
+### Blog Özellikleri
+- ✅ Modern ve responsive tasarım
+- ✅ Blog yazıları yönetimi (CRUD)
+- ✅ Kategori ve etiket sistemi
+- ✅ Arama ve filtreleme
+- ✅ Yorum sistemi (onay gerektiren)
+- ✅ Beğeni sistemi
+- ✅ Öne çıkan yazılar
+- ✅ SEO optimizasyonu
+- ✅ Sosyal medya paylaşımı
+
+### Analytics ve İzleme
+- ✅ Ziyaretçi istatistikleri
+- ✅ Sayfa görüntüleme takibi
+- ✅ Popüler içerik analizi
+- ✅ Gerçek zamanlı analytics
+- ✅ Coğrafi analiz
+
+### Newsletter Sistemi
+- ✅ E-posta abonelik sistemi
+- ✅ Kampanya yönetimi
+- ✅ Abone istatistikleri
+- ✅ E-posta şablonları
+
+### Teknik Özellikler
+- ✅ JWT tabanlı kimlik doğrulama
+- ✅ Role-based yetkilendirme
+- ✅ Rate limiting
+- ✅ File upload sistemi
+- ✅ Caching (Redis)
+- ✅ Logging sistemi
+- ✅ Error handling
+- ✅ API documentation (Swagger)
+- ✅ Docker containerization
+- ✅ Health checks
+
+## 🛠️ Teknoloji Stack
+
+### Frontend
+- **React 18** - UI framework
+- **Vite** - Build tool
+- **Material Tailwind** - UI components
+- **Redux Toolkit** - State management
+- **React Query** - Data fetching
+- **Framer Motion** - Animations
+- **React Router** - Routing
+
+### Backend
+- **Node.js** - Runtime
+- **Express.js** - Web framework
+- **MongoDB** - Database
+- **Mongoose** - ODM
+- **Redis** - Caching
+- **Socket.io** - Real-time communication
+- **JWT** - Authentication
+- **Winston** - Logging
+- **Joi** - Validation
+
+### DevOps
+- **Docker** - Containerization
+- **Docker Compose** - Multi-container orchestration
+- **Nginx** - Reverse proxy
+- **Make** - Build automation
+
+## 📦 Kurulum
+
+### Gereksinimler
+- Docker ve Docker Compose
+- Node.js 18+ (local development için)
+- Git
+
+### Hızlı Başlangıç
+
+1. **Development ortamını başlatın:**
+```bash
+make dev
+```
+
+2. **Production ortamını başlatın:**
+```bash
+make prod
+```
+
+### URL'ler
+
+- **Frontend:** http://localhost (production) / http://localhost:3000 (development)
+- **Backend API:** http://localhost:5000/api
+- **MongoDB:** localhost:27017
+- **Redis:** localhost:6379
+
+### Default Admin Kullanıcısı
+
+```
+Email: admin@yourblog.com
+Password: admin123456
+```
+
+## 🔧 Kullanım
+
+### Make Komutları
+
+```bash
+# Development ortamı
+make dev              # Development modunda başlat
+
+# Production ortamı
+make prod             # Production modunda başlat
+
+# Servis yönetimi
+make up               # Servisleri başlat
+make down             # Servisleri durdur
+make logs             # Logları görüntüle
+
+# Temizlik
+make clean            # Containers ve volumes temizle
+```
+
+## 📁 Proje Yapısı
 
 The project is divided into two main parts:
 

@@ -68,16 +68,28 @@ mongoose
 const postRoutes = require('./routers/post');
 const authRoutes = require('./routers/auth');
 const userRoutes = require('./routers/user');
-const eventRoutes = require('./routers/event');
+const analyticsRoutes = require('./routers/analytics');
+const newsletterRoutes = require('./routers/newsletter');
 
 // Setup Swagger documentation
 setupSwagger(app);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/event', eventRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

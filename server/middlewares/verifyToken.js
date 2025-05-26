@@ -101,8 +101,34 @@ const authorizeAdmin = (req, res, next) => {
   }
 };
 
+/**
+ * Verifies if user is an admin (strict admin check)
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+const requireAdmin = (req, res, next) => {
+  try {
+    // First authenticate the user
+    authenticate(req, res, (err) => {
+      if (err) return next(err);
+
+      // Check if user is admin
+      if (req.user.role !== 'admin') {
+        return next(AppError.forbidden('Admin access required'));
+      }
+
+      next();
+    });
+  } catch (error) {
+    logger.error('Admin requirement error:', error);
+    next(error);
+  }
+};
+
 module.exports = {
   verifyToken: authenticate,
   verifyTokenAndAuth: authorizeUser,
+  verifyTokenAndAdmin: requireAdmin,
   verifyIsAdmin: authorizeAdmin
 };

@@ -1,193 +1,482 @@
 const mongoose = require("mongoose");
-const Posts = require("../models/Post.model");
+const Post = require("../models/Post.model");
+const { VisitorSession } = require("../models/Analytics.model");
+const { AppError } = require('../middlewares/errorHandler');
+const { logger } = require('../utils/logger');
 
-async function addPost(req, res, next) {
+// Create a new blog post
+async function createPost(req, res, next) {
   try {
-    console.log("addPost çalıştı")
-    console.log(req.body)
-    const { title, content, materials, sound, category, author, event } = req.body;
-    const data = await Posts.create({
-      title: title,
-      content: content,
-      materials: materials,
-      sound: sound,
-      category: category,
-      author: author,
-      event: event,
+    const {
+      title,
+      content,
+      excerpt,
+      category,
+      tags,
+      featuredImage,
+      images,
+      status,
+      featured,
+      seo
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !content || !excerpt || !category) {
+      return next(AppError.validation('Title, content, excerpt, and category are required'));
+    }
+
+    // Create new post
+    const post = new Post({
+      title,
+      content,
+      excerpt,
+      category,
+      tags: tags || [],
+      featuredImage,
+      images: images || [],
+      author: req.user.id,
+      status: status || 'draft',
+      featured: featured || false,
+      seo: seo || {},
     });
 
-    if (data) return res.json({ msg: "Message added successfully." });
-    else return res.json({ msg: "Failed to add message to the database" });
-  } catch (er) {
-    console.log(er);
-    next(er);
+    await post.save();
+
+    // Populate author information
+    await post.populate('author', 'name email image');
+
+    logger.info(`New blog post created: ${post.title} by ${req.user.name}`);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Blog post created successfully',
+      data: { post }
+    });
+  } catch (error) {
+    logger.error('Create post error:', error);
+    next(error);
   }
 }
 
-async function getPost(req, res, next) {
+// Get all published posts with pagination and filtering
+async function getPosts(req, res, next) {
   try {
-    const { category, userId } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      tag,
+      search,
+      featured,
+      sort = 'publishedAt'
+    } = req.query;
 
-    const { id } = req.params; // Destructuring the query parameters from the request
-    console.log();
-    let whereClause = {}; // Initializing an empty where clause object for the Sequelize query
+    // Build query
+    const query = { status: 'published' };
 
-    // If a category is provided in the query, add it to the where clause
     if (category) {
-      whereClause.category = category;
+      query.category = category;
     }
 
-    // If a user ID is provided in the query, add it to the where clause
-    if (id) {
-      whereClause._id = id;
+    if (tag) {
+      query.tags = { $in: [tag] };
     }
 
-    if (userId) {
-      whereClause.author = userId;
+    if (featured === 'true') {
+      query.featured = true;
     }
 
-    console.log("get isteiği alındı");
-    const posts = await Posts.find(whereClause).populate("author").populate({
-      path: "comments",
-      populate: ({path:"user",select:"name image"}),
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { excerpt: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } }
+      ];
+    }
+
+    // Sort options
+    let sortOption = {};
+    switch (sort) {
+      case 'views':
+        sortOption = { views: -1 };
+        break;
+      case 'likes':
+        sortOption = { likes: -1 };
+        break;
+      case 'title':
+        sortOption = { title: 1 };
+        break;
+      default:
+        sortOption = { publishedAt: -1 };
+    }
+
+    // Execute query with pagination
+    const posts = await Post.find(query)
+      .populate('author', 'name image bio')
+      .sort(sortOption)
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select('-content'); // Exclude full content for list view
+
+    const total = await Post.countDocuments(query);
+
+    res.json({
+      status: 'success',
+      data: {
+        posts,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalPosts: total,
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1
+        }
+      }
     });
-
-    if (posts.length === 1 && id) {
-      console.log("views arttırıldı");
-      posts[0].views += 1;
-      posts[0].viewer.push({ ip: req.ip, date: new Date() });
-      await posts[0].save();
-    }
-
-
-    res.json(posts);
-  } catch (er) {
-    console.log(er);
-    console.log("get isteği hatası:", er);
-    next(er);
+  } catch (error) {
+    logger.error('Get posts error:', error);
+    next(error);
   }
 }
 
-async function deletePost(req, res, next) {
+// Get single post by slug
+async function getPostBySlug(req, res, next) {
   try {
-    const postId = req.params.id; // assuming the post ID is passed in as a URL parameter
+    const { slug } = req.params;
 
-    const deletedPost = await Posts.findByIdAndDelete(postId);
+    const post = await Post.findOne({
+      slug,
+      status: 'published'
+    })
+    .populate('author', 'name image bio')
+    .populate('relatedPosts', 'title slug excerpt featuredImage publishedAt readingTime');
 
-    if (deletedPost) {
-      return res.json({ msg: "Post deleted successfully." });
-    } else {
-      return res.json({ msg: "Post not found." });
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
     }
-  } catch (er) {
-    next(er);
-  }
-}
 
-// Yorum ekleme
-async function addComment(req, res, next) {
-  try {
-    const { postId, content, user } = req.body;
-
-    // Yeni yorum oluştur
-    const newComment = {
-      text: content,
-      user: user,
-      createdAt: new Date(),
+    // Track view
+    const viewData = {
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      referrer: req.get('Referrer'),
+      country: req.get('CF-IPCountry') || 'Unknown',
+      city: req.get('CF-IPCity') || 'Unknown',
     };
 
-    // Post'u güncelle ve yorumu ekle
-    const updatedPost = await Posts.findByIdAndUpdate(
-      postId,
-      { $push: { comments: newComment } },
-      { new: true }
-    );
+    await post.incrementViews(viewData);
 
-    if (updatedPost) {
-      return res.json({
-        msg: "Comment added successfully.",
-        post: updatedPost,
-      });
-    } else {
-      return res.json({ msg: "Failed to add comment to the post." });
-    }
-  } catch (err) {
-    console.log(err);
-    next(err);
+    res.json({
+      status: 'success',
+      data: { post }
+    });
+  } catch (error) {
+    logger.error('Get post by slug error:', error);
+    next(error);
   }
 }
 
-// Yorum silme
+// Update post (admin only)
+async function updatePost(req, res, next) {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Remove fields that shouldn't be updated directly
+    delete updateData.author;
+    delete updateData.views;
+    delete updateData.viewHistory;
+
+    const post = await Post.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('author', 'name email image');
+
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
+    }
+
+    logger.info(`Post updated: ${post.title} by ${req.user.name}`);
+
+    res.json({
+      status: 'success',
+      message: 'Post updated successfully',
+      data: { post }
+    });
+  } catch (error) {
+    logger.error('Update post error:', error);
+    next(error);
+  }
+}
+
+// Delete post (admin only)
+async function deletePost(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const post = await Post.findByIdAndDelete(id);
+
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
+    }
+
+    logger.info(`Post deleted: ${post.title} by ${req.user.name}`);
+
+    res.json({
+      status: 'success',
+      message: 'Post deleted successfully'
+    });
+  } catch (error) {
+    logger.error('Delete post error:', error);
+    next(error);
+  }
+}
+
+// Add comment to post
+async function addComment(req, res, next) {
+  try {
+    const { slug } = req.params;
+    const { name, email, website, text, parentComment } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !text) {
+      return next(AppError.validation('Name, email, and comment text are required'));
+    }
+
+    const post = await Post.findOne({ slug, status: 'published' });
+
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
+    }
+
+    // Create new comment
+    const newComment = {
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      website: website || '',
+      text: text.trim(),
+      parentComment: parentComment || null,
+      isApproved: false, // Comments need approval
+    };
+
+    post.comments.push(newComment);
+    await post.save();
+
+    logger.info(`New comment added to post: ${post.title} by ${name}`);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Comment submitted successfully. It will be visible after approval.',
+      data: { comment: newComment }
+    });
+  } catch (error) {
+    logger.error('Add comment error:', error);
+    next(error);
+  }
+}
+
+// Approve/reject comment (admin only)
+async function moderateComment(req, res, next) {
+  try {
+    const { postId, commentId } = req.params;
+    const { action } = req.body; // 'approve' or 'reject'
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
+    }
+
+    const comment = post.comments.id(commentId);
+
+    if (!comment) {
+      return next(AppError.notFound('Comment not found'));
+    }
+
+    if (action === 'approve') {
+      comment.isApproved = true;
+      await post.save();
+
+      logger.info(`Comment approved on post: ${post.title}`);
+
+      res.json({
+        status: 'success',
+        message: 'Comment approved successfully'
+      });
+    } else if (action === 'reject') {
+      post.comments.pull(commentId);
+      await post.save();
+
+      logger.info(`Comment rejected and deleted from post: ${post.title}`);
+
+      res.json({
+        status: 'success',
+        message: 'Comment rejected and deleted successfully'
+      });
+    } else {
+      return next(AppError.validation('Action must be either "approve" or "reject"'));
+    }
+  } catch (error) {
+    logger.error('Moderate comment error:', error);
+    next(error);
+  }
+}
+
+// Delete comment (admin only)
 async function deleteComment(req, res, next) {
   try {
     const { postId, commentId } = req.params;
 
-    // Post'tan yorumu kaldır
-    const updatedPost = await Posts.findByIdAndUpdate(
-      postId,
-      { $pull: { comments: { _id: commentId } } },
-      { new: true }
-    );
+    const post = await Post.findById(postId);
 
-    if (updatedPost) {
-      return res.json({
-        msg: "Comment deleted successfully.",
-        post: updatedPost,
-      });
-    } else {
-      return res.json({ msg: "Failed to delete comment from the post." });
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
     }
-  } catch (err) {
-    console.log(err);
-    next(err);
+
+    post.comments.pull(commentId);
+    await post.save();
+
+    logger.info(`Comment deleted from post: ${post.title}`);
+
+    res.json({
+      status: 'success',
+      message: 'Comment deleted successfully'
+    });
+  } catch (error) {
+    logger.error('Delete comment error:', error);
+    next(error);
   }
 }
+
+// Like/unlike post
 async function toggleLike(req, res, next) {
   try {
-    const { postId, userId } = req.body;
+    const { slug } = req.params;
 
-    // Kullanıcının gönderiyi beğenip beğenmediğini kontrol et
-    const post = await Posts.findById(postId);
+    const post = await Post.findOne({ slug, status: 'published' });
 
-    if (post.likes.includes(userId)) {
-      // Kullanıcı zaten beğenmişse beğeniyi kaldır
-      const updatedPost = await Posts.findByIdAndUpdate(
-        postId,
-        { $pull: { likes: userId } },
-        { new: true }
-      );
-
-      if (updatedPost) {
-        return res.json({ msg: "Post unliked successfully.", post: updatedPost });
-      } else {
-        return res.json({ msg: "Failed to unlike the post." });
-      }
-    } else {
-      // Kullanıcı daha önce beğenmemişse beğeni ekle
-      const updatedPost = await Posts.findByIdAndUpdate(
-        postId,
-        { $push: { likes: userId } },
-        { new: true }
-      );
-
-      if (updatedPost) {
-        return res.json({ msg: "Post liked successfully.", post: updatedPost });
-      } else {
-        return res.json({ msg: "Failed to like the post." });
-      }
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
     }
-  } catch (err) {
-    console.log(err);
-    next(err);
+
+    // Simple increment/decrement for anonymous likes
+    post.likes += 1;
+    await post.save();
+
+    res.json({
+      status: 'success',
+      message: 'Post liked successfully',
+      data: { likes: post.likes }
+    });
+  } catch (error) {
+    logger.error('Toggle like error:', error);
+    next(error);
   }
 }
 
+// Get featured posts
+async function getFeaturedPosts(req, res, next) {
+  try {
+    const { limit = 3 } = req.query;
+
+    const posts = await Post.getFeaturedPosts(parseInt(limit));
+
+    res.json({
+      status: 'success',
+      data: { posts }
+    });
+  } catch (error) {
+    logger.error('Get featured posts error:', error);
+    next(error);
+  }
+}
+
+// Get popular posts
+async function getPopularPosts(req, res, next) {
+  try {
+    const { limit = 5 } = req.query;
+
+    const posts = await Post.getPopularPosts(parseInt(limit));
+
+    res.json({
+      status: 'success',
+      data: { posts }
+    });
+  } catch (error) {
+    logger.error('Get popular posts error:', error);
+    next(error);
+  }
+}
+
+// Get recent posts
+async function getRecentPosts(req, res, next) {
+  try {
+    const { limit = 5 } = req.query;
+
+    const posts = await Post.getRecentPosts(parseInt(limit));
+
+    res.json({
+      status: 'success',
+      data: { posts }
+    });
+  } catch (error) {
+    logger.error('Get recent posts error:', error);
+    next(error);
+  }
+}
+
+// Get posts by category
+async function getPostsByCategory(req, res, next) {
+  try {
+    const { category } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    const posts = await Post.find({
+      category,
+      status: 'published'
+    })
+    .populate('author', 'name image')
+    .sort({ publishedAt: -1 })
+    .limit(limit * 1)
+    .skip((page - 1) * limit)
+    .select('-content');
+
+    const total = await Post.countDocuments({ category, status: 'published' });
+
+    res.json({
+      status: 'success',
+      data: {
+        posts,
+        category,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalPosts: total,
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Get posts by category error:', error);
+    next(error);
+  }
+}
 
 module.exports = {
-  addPost,
-  getPost,
+  createPost,
+  getPosts,
+  getPostBySlug,
+  updatePost,
   deletePost,
   addComment,
+  moderateComment,
   deleteComment,
-  toggleLike
+  toggleLike,
+  getFeaturedPosts,
+  getPopularPosts,
+  getRecentPosts,
+  getPostsByCategory
 };

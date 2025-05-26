@@ -29,7 +29,7 @@ import SearchBar from "../SearchBar/SearchBar";
 // Navigation links
 const navListItems = [
   {
-    label: "Home",
+    label: "Ana Sayfa",
     path: "/",
   },
   {
@@ -37,11 +37,7 @@ const navListItems = [
     path: "/blog",
   },
   {
-    label: "Categories",
-    path: "/categories",
-  },
-  {
-    label: "About",
+    label: "Hakkımda",
     path: "/about",
   },
 ];
@@ -49,22 +45,22 @@ const navListItems = [
 // Profile menu items
 const profileMenuItems = [
   {
-    label: "My Profile",
+    label: "Profilim",
     icon: UserCircleIcon,
     path: "/profile",
   },
   {
-    label: "Edit Profile",
+    label: "Ayarlar",
     icon: Cog6ToothIcon,
     path: "/settings",
   },
   {
-    label: "Inbox",
+    label: "Yazı Yaz",
     icon: InboxArrowDownIcon,
-    path: "/inbox",
+    path: "/upload",
   },
   {
-    label: "Sign Out",
+    label: "Çıkış Yap",
     icon: PowerIcon,
     action: "logout",
   },
@@ -213,7 +209,7 @@ export default function MainNavbar() {
               className="hidden lg:inline-block"
               onClick={() => navigate("/login")}
             >
-              <span>Sign In</span>
+              <span>Giriş Yap</span>
             </Button>
           )}
           <IconButton
@@ -250,7 +246,7 @@ export default function MainNavbar() {
                   setOpenNav(false);
                 }}
               >
-                <span>Sign In</span>
+                <span>Giriş Yap</span>
               </Button>
               <Button
                 fullWidth
@@ -262,7 +258,7 @@ export default function MainNavbar() {
                   setOpenNav(false);
                 }}
               >
-                <span>Sign Up</span>
+                <span>Kayıt Ol</span>
               </Button>
             </div>
           )}
