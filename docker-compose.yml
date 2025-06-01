@@ -9,7 +9,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password123
       MONGO_INITDB_DATABASE: blog_db
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongodb_data:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
@@ -28,7 +28,7 @@ services:
     container_name: blog_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -49,8 +49,11 @@ services:
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://admin:password123@mongodb:27017/blog_db?authSource=admin
+      MONGO_URI: mongodb://admin:password123@mongodb:27017/blog_db?authSource=admin
       REDIS_URL: redis://redis:6379
-      CLIENT_URL: http://localhost
+      CLIENT_URL: https://muhammedtarikucar.com
+      JWT_SECRET: your-super-secret-jwt-key-here-change-in-production
+      REFRESH_TOKEN_SECRET: your-super-secret-refresh-token-key-here-change-in-production
     ports:
       - "5000:5000"
     volumes:
@@ -78,10 +81,9 @@ services:
     container_name: blog_client
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8082:80"
     depends_on:
-      server:
-        condition: service_healthy
+      - server
     networks:
       - blog_network
     healthcheck:

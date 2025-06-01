@@ -27,18 +27,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built app from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Create non-root user
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S nginx -u 1001 -G nginx
-
-# Change ownership
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d
-
-# Switch to non-root user
-USER nginx
+# Change ownership to existing nginx user
+RUN chown -R nginx:nginx /usr/share/nginx/html
 
 # Expose port
 EXPOSE 80
