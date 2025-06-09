@@ -1,8 +1,20 @@
 const mongoose = require("mongoose");
 const Post = require("../models/Post.model");
+const User = require("../models/User.model");
 const { VisitorSession } = require("../models/Analytics.model");
 const { AppError } = require('../middlewares/errorHandler');
 const { logger } = require('../utils/logger');
+
+// Helper function to get admin user IDs
+async function getAdminUserIds() {
+  try {
+    const adminUsers = await User.find({ role: 'admin' }, '_id');
+    return adminUsers.map(user => user._id);
+  } catch (error) {
+    logger.error('Error fetching admin user IDs:', error);
+    return [];
+  }
+}
 
 // Create a new blog post
 async function createPost(req, res, next) {
@@ -111,28 +123,31 @@ async function getPosts(req, res, next) {
         sortOption = { publishedAt: -1 };
     }
 
+    // Add admin filter to query for better performance
+    const adminQuery = {
+      ...query,
+      author: { $in: await getAdminUserIds() }
+    };
+
     // Execute query with pagination
-    const posts = await Post.find(query)
+    const posts = await Post.find(adminQuery)
       .populate('author', 'name image bio role')
       .sort(sortOption)
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .select('-content'); // Exclude full content for list view
 
-    // Filter posts to show only admin posts
-    const adminPosts = posts.filter(post => post.author && post.author.role === 'admin');
-
-    const total = await Post.countDocuments(query);
+    const total = await Post.countDocuments(adminQuery);
 
     res.json({
       status: 'success',
       data: {
-        posts: adminPosts,
+        posts,
         pagination: {
           currentPage: parseInt(page),
-          totalPages: Math.ceil(adminPosts.length / limit),
-          totalPosts: adminPosts.length,
-          hasNext: page < Math.ceil(adminPosts.length / limit),
+          totalPages: Math.ceil(total / limit),
+          totalPosts: total,
+          hasNext: page < Math.ceil(total / limit),
           hasPrev: page > 1
         }
       }
@@ -386,6 +401,7 @@ async function deleteComment(req, res, next) {
 async function toggleLike(req, res, next) {
   try {
     const { slug } = req.params;
+    const userId = req.user.id;
 
     const post = await Post.findOne({ slug, status: 'published' });
 
@@ -393,14 +409,29 @@ async function toggleLike(req, res, next) {
       return next(AppError.notFound('Post not found'));
     }
 
-    // Simple increment/decrement for anonymous likes
-    post.likes += 1;
+    // Check if user already liked this post
+    const user = await User.findById(userId).select('likedPosts');
+    const hasLiked = user?.likedPosts?.includes(post._id);
+
+    if (hasLiked) {
+      // Unlike the post
+      post.likes = Math.max(0, post.likes - 1);
+      await User.findByIdAndUpdate(userId, { $pull: { likedPosts: post._id } });
+    } else {
+      // Like the post
+      post.likes += 1;
+      await User.findByIdAndUpdate(userId, { $addToSet: { likedPosts: post._id } });
+    }
+
     await post.save();
 
     res.json({
       status: 'success',
-      message: 'Post liked successfully',
-      data: { likes: post.likes }
+      message: hasLiked ? 'Post unliked successfully' : 'Post liked successfully',
+      data: {
+        likes: post.likes,
+        isLiked: !hasLiked
+      }
     });
   } catch (error) {
     logger.error('Toggle like error:', error);
@@ -413,14 +444,19 @@ async function getFeaturedPosts(req, res, next) {
   try {
     const { limit = 3 } = req.query;
 
-    const posts = await Post.getFeaturedPosts(parseInt(limit));
-
-    // Filter posts to show only admin posts
-    const adminPosts = posts.filter(post => post.author && post.author.role === 'admin');
+    const adminUserIds = await getAdminUserIds();
+    const posts = await Post.find({
+      status: 'published',
+      featured: true,
+      author: { $in: adminUserIds }
+    })
+      .populate('author', 'name image role')
+      .sort({ publishedAt: -1 })
+      .limit(parseInt(limit));
 
     res.json({
       status: 'success',
-      data: { posts: adminPosts }
+      data: { posts }
     });
   } catch (error) {
     logger.error('Get featured posts error:', error);
@@ -433,14 +469,18 @@ async function getPopularPosts(req, res, next) {
   try {
     const { limit = 5 } = req.query;
 
-    const posts = await Post.getPopularPosts(parseInt(limit));
-
-    // Filter posts to show only admin posts
-    const adminPosts = posts.filter(post => post.author && post.author.role === 'admin');
+    const adminUserIds = await getAdminUserIds();
+    const posts = await Post.find({
+      status: 'published',
+      author: { $in: adminUserIds }
+    })
+      .populate('author', 'name image role')
+      .sort({ views: -1 })
+      .limit(parseInt(limit));
 
     res.json({
       status: 'success',
-      data: { posts: adminPosts }
+      data: { posts }
     });
   } catch (error) {
     logger.error('Get popular posts error:', error);
@@ -453,14 +493,18 @@ async function getRecentPosts(req, res, next) {
   try {
     const { limit = 5 } = req.query;
 
-    const posts = await Post.getRecentPosts(parseInt(limit));
-
-    // Filter posts to show only admin posts
-    const adminPosts = posts.filter(post => post.author && post.author.role === 'admin');
+    const adminUserIds = await getAdminUserIds();
+    const posts = await Post.find({
+      status: 'published',
+      author: { $in: adminUserIds }
+    })
+      .populate('author', 'name image role')
+      .sort({ publishedAt: -1 })
+      .limit(parseInt(limit));
 
     res.json({
       status: 'success',
-      data: { posts: adminPosts }
+      data: { posts }
     });
   } catch (error) {
     logger.error('Get recent posts error:', error);

@@ -1,5 +1,6 @@
 const Category = require('../models/Category.model');
 const Post = require('../models/Post.model');
+const { AppError } = require('../middlewares/errorHandler');
 const { logger } = require('../utils/logger');
 
 // Get all categories
@@ -81,10 +82,7 @@ async function getCategoryById(req, res, next) {
     }
 
     if (!category) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Category not found'
-      });
+      return next(AppError.notFound('Category not found'));
     }
 
     res.json({
@@ -111,10 +109,7 @@ async function createCategory(req, res, next) {
     } = req.body;
 
     if (!name) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Category name is required'
-      });
+      return next(AppError.validation('Category name is required'));
     }
 
     // Check if category with same name exists
@@ -123,10 +118,7 @@ async function createCategory(req, res, next) {
     });
 
     if (existingCategory) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Category with this name already exists'
-      });
+      return next(AppError.duplicateEntry('Category with this name already exists'));
     }
 
     // Generate slug from name
@@ -182,10 +174,7 @@ async function updateCategory(req, res, next) {
     const category = await Category.findById(id);
 
     if (!category) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Category not found'
-      });
+      return next(AppError.notFound('Category not found'));
     }
 
     // Check if new name conflicts with existing category
@@ -196,10 +185,7 @@ async function updateCategory(req, res, next) {
       });
 
       if (existingCategory) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Category with this name already exists'
-        });
+        return next(AppError.duplicateEntry('Category with this name already exists'));
       }
     }
 
@@ -238,20 +224,14 @@ async function deleteCategory(req, res, next) {
     const category = await Category.findById(id);
 
     if (!category) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Category not found'
-      });
+      return next(AppError.notFound('Category not found'));
     }
 
     // Check if category has posts
     const postCount = await Post.countDocuments({ category: id });
 
     if (postCount > 0) {
-      return res.status(400).json({
-        status: 'error',
-        message: `Cannot delete category. It has ${postCount} posts. Please move or delete the posts first.`
-      });
+      return next(AppError.validation(`Cannot delete category. It has ${postCount} posts. Please move or delete the posts first.`));
     }
 
     await Category.findByIdAndDelete(id);
@@ -308,10 +288,7 @@ async function reorderCategories(req, res, next) {
     const { categories } = req.body; // Array of { id, sortOrder }
 
     if (!Array.isArray(categories)) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Categories array is required'
-      });
+      return next(AppError.validation('Categories array is required'));
     }
 
     const bulkOps = categories.map(cat => ({

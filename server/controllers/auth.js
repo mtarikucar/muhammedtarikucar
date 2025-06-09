@@ -32,7 +32,6 @@ async function register(req, res, next) {
     // Check if user already exists
     const existingUser = await User.findOne({
       email: email.toLowerCase(),
-      isDeleted: false,
     });
 
     if (existingUser) {

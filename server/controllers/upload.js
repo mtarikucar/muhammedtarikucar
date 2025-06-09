@@ -8,7 +8,7 @@ const { getFileUrl, deleteFile } = require('../middlewares/upload');
 const uploadSingleFile = async (req, res, next) => {
   try {
     if (!req.file) {
-      return next(new AppError('No file uploaded', 'VALIDATION_ERROR', 400));
+      return next(AppError.validation('No file uploaded'));
     }
 
     const file = req.file;
@@ -50,7 +50,7 @@ const uploadSingleFile = async (req, res, next) => {
 const uploadMultipleFiles = async (req, res, next) => {
   try {
     if (!req.files || req.files.length === 0) {
-      return next(new AppError('No files uploaded', 'VALIDATION_ERROR', 400));
+      return next(AppError.validation('No files uploaded'));
     }
 
     const uploadedFiles = req.files.map(file => {
@@ -92,7 +92,7 @@ const uploadMultipleFiles = async (req, res, next) => {
 const uploadFieldFiles = async (req, res, next) => {
   try {
     if (!req.files || Object.keys(req.files).length === 0) {
-      return next(new AppError('No files uploaded', 'VALIDATION_ERROR', 400));
+      return next(AppError.validation('No files uploaded'));
     }
 
     const uploadedFiles = {};
@@ -140,7 +140,7 @@ const deleteUploadedFile = async (req, res, next) => {
     const { filename, category = 'images' } = req.params;
 
     if (!filename) {
-      return next(new AppError('Filename is required', 'VALIDATION_ERROR', 400));
+      return next(AppError.validation('Filename is required'));
     }
 
     // Construct file path
@@ -149,7 +149,7 @@ const deleteUploadedFile = async (req, res, next) => {
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
-      return next(new AppError('File not found', 'NOT_FOUND', 404));
+      return next(AppError.notFound('File not found'));
     }
 
     // Delete file
@@ -173,7 +173,7 @@ const getFileInfo = async (req, res, next) => {
     const { filename, category = 'images' } = req.params;
 
     if (!filename) {
-      return next(new AppError('Filename is required', 'VALIDATION_ERROR', 400));
+      return next(AppError.validation('Filename is required'));
     }
 
     // Construct file path
@@ -182,7 +182,7 @@ const getFileInfo = async (req, res, next) => {
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
-      return next(new AppError('File not found', 'NOT_FOUND', 404));
+      return next(AppError.notFound('File not found'));
     }
 
     // Get file stats

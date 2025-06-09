@@ -82,7 +82,7 @@ const fileFilter = (req, file, cb) => {
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new AppError('Invalid file type. Only images, documents, audio and video files are allowed.', 'VALIDATION_ERROR', 400), false);
+    cb(AppError.validation('Invalid file type. Only images, documents, audio and video files are allowed.'), false);
   }
 };
 
@@ -103,13 +103,13 @@ const uploadSingle = (fieldName) => {
       if (err) {
         if (err instanceof multer.MulterError) {
           if (err.code === 'LIMIT_FILE_SIZE') {
-            return next(new AppError('File too large. Maximum size is 10MB.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('File too large. Maximum size is 10MB.'));
           }
           if (err.code === 'LIMIT_FILE_COUNT') {
-            return next(new AppError('Too many files. Maximum is 10 files.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('Too many files. Maximum is 10 files.'));
           }
           if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-            return next(new AppError('Unexpected field name.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('Unexpected field name.'));
           }
         }
         return next(err);
@@ -126,13 +126,13 @@ const uploadMultiple = (fieldName, maxCount = 10) => {
       if (err) {
         if (err instanceof multer.MulterError) {
           if (err.code === 'LIMIT_FILE_SIZE') {
-            return next(new AppError('File too large. Maximum size is 10MB.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('File too large. Maximum size is 10MB.'));
           }
           if (err.code === 'LIMIT_FILE_COUNT') {
-            return next(new AppError('Too many files. Maximum is 10 files.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('Too many files. Maximum is 10 files.'));
           }
           if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-            return next(new AppError('Unexpected field name.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('Unexpected field name.'));
           }
         }
         return next(err);
@@ -149,13 +149,13 @@ const uploadFields = (fields) => {
       if (err) {
         if (err instanceof multer.MulterError) {
           if (err.code === 'LIMIT_FILE_SIZE') {
-            return next(new AppError('File too large. Maximum size is 10MB.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('File too large. Maximum size is 10MB.'));
           }
           if (err.code === 'LIMIT_FILE_COUNT') {
-            return next(new AppError('Too many files. Maximum is 10 files.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('Too many files. Maximum is 10 files.'));
           }
           if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-            return next(new AppError('Unexpected field name.', 'VALIDATION_ERROR', 400));
+            return next(AppError.validation('Unexpected field name.'));
           }
         }
         return next(err);

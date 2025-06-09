@@ -23,6 +23,11 @@ router.get("/featured", getFeaturedPosts);
 router.get("/popular", getPopularPosts);
 router.get("/recent", getRecentPosts);
 router.get("/category/:category", getPostsByCategory);
+
+// Get user's own posts (must be before /:slug route)
+router.get("/my-posts", authenticate, getUserPosts);
+
+// Single post route (must be after specific routes)
 router.get("/:slug", getPostBySlug);
 
 // Comment routes (authenticated users can add comments)
@@ -31,9 +36,6 @@ router.post('/:slug/like', authenticate, toggleLike);
 
 // User routes (authenticated users can create posts)
 router.post("/", verifyTokenAndAuth, createPost);
-
-// Get user's own posts
-router.get("/my-posts", authenticate, getUserPosts);
 
 // Post management routes (users can edit their own posts, admins can edit any)
 router.put("/:id", verifyTokenAndAuth, updatePost);

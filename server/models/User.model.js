@@ -39,7 +39,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     enum: ['member', 'admin'],
     default: 'member'
-  }
+  },
+  likedPosts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post'
+  }]
 }, { timestamps: true });
 
 

@@ -11,14 +11,13 @@ const authSlice = createSlice({
   reducers: {
     loginSuccess(state, action) {
       state.currentUser = action.payload.user;
-      state.accessToken = action.payload.accessToken
+      state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
     },
     logoutSuccess(state) {
       state.currentUser = null;
       state.accessToken = null;
-      state.refreshToken =null;
-      
+      state.refreshToken = null;
     },
   },
 });
