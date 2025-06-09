@@ -3,7 +3,9 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: true
+    required: true,
+    unique: true,
+    lowercase: true
   },
   name: {
     type: String,
@@ -11,11 +13,11 @@ const UserSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    default:null,
+    default: null,
   },
   gender: {
     type: String,
-    enum:[`male`,`female`,`not selected`],
+    enum: ['male', 'female', 'not selected'],
     default: "not selected"
   },
   bio: {
@@ -31,7 +33,7 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    allowNull: false
+    required: true
   },
   role: {
     type: String,

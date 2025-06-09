@@ -51,7 +51,7 @@ const BlogHero = ({ featuredPost }) => {
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
-            src={featuredPost.featuredImage || '/default-blog-hero.jpg'}
+            src={featuredPost.featuredImage || '/default-blog-hero.svg'}
             alt={featuredPost.title}
             className="w-full h-full object-cover"
           />
@@ -68,7 +68,7 @@ const BlogHero = ({ featuredPost }) => {
             {/* Category Badge */}
             <div className="mb-4">
               <Chip
-                value={featuredPost.category.replace('-', ' ')}
+                value={featuredPost.category ? featuredPost.category.replace('-', ' ') : 'Genel'}
                 color={getCategoryColor(featuredPost.category)}
                 className="capitalize mb-2"
               />
@@ -99,7 +99,7 @@ const BlogHero = ({ featuredPost }) => {
             <div className="flex flex-wrap items-center gap-6 mb-6 text-gray-300">
               <div className="flex items-center gap-2">
                 <img
-                  src={featuredPost.author?.image || '/default-avatar.png'}
+                  src={featuredPost.author?.image || '/default-avatar.svg'}
                   alt={featuredPost.author?.name}
                   className="w-8 h-8 rounded-full"
                 />

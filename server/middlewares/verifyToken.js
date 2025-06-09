@@ -45,7 +45,7 @@ const authenticate = (req, res, next) => {
 
 /**
  * Verifies if user is authorized to access resource
- * User must be the owner of the resource or have member role
+ * User must be the owner of the resource or be authenticated
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next middleware function
@@ -56,11 +56,11 @@ const authorizeUser = (req, res, next) => {
     authenticate(req, res, (err) => {
       if (err) return next(err);
 
-      // Check if user is authorized
+      // Check if user is authorized (owner of resource or just authenticated)
       const isOwner = req.params.id && req.user.id === req.params.id;
-      const isMember = req.user.role === 'member';
+      const isAuthenticated = req.user && req.user.id;
 
-      if (isOwner || isMember) {
+      if (isOwner || isAuthenticated) {
         return next();
       }
 
@@ -68,6 +68,33 @@ const authorizeUser = (req, res, next) => {
     });
   } catch (error) {
     logger.error('Authorization error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Verifies if user owns the resource (strict ownership check)
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+const authorizeOwner = (req, res, next) => {
+  try {
+    // First authenticate the user
+    authenticate(req, res, (err) => {
+      if (err) return next(err);
+
+      // Check if user is the owner of the resource
+      const isOwner = req.params.id && req.user.id === req.params.id;
+
+      if (isOwner) {
+        return next();
+      }
+
+      return next(AppError.forbidden('You can only access your own resources'));
+    });
+  } catch (error) {
+    logger.error('Owner authorization error:', error);
     next(error);
   }
 };
@@ -129,6 +156,8 @@ const requireAdmin = (req, res, next) => {
 module.exports = {
   verifyToken: authenticate,
   verifyTokenAndAuth: authorizeUser,
+  verifyTokenAndOwner: authorizeOwner,
   verifyTokenAndAdmin: requireAdmin,
-  verifyIsAdmin: authorizeAdmin
+  verifyIsAdmin: authorizeAdmin,
+  authenticate
 };

@@ -27,22 +27,57 @@ async function getAllUser(req, res) {
 
 async function updateUserById(req, res, next) {
   try {
-    const user = await User.findById(req.params.id);
+    const userId = req.params.id;
+    const updateData = req.body;
+
+    // Check if user exists
+    const user = await User.findById(userId);
     if (!user) {
-      res.status(404).json({
+      return res.status(404).json({
+        status: 'error',
         message: "User not found!",
       });
-      return;
     }
 
-    const User = require("../models/User.model");
+    // Check if user is updating their own profile or is admin
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({
+        status: 'error',
+        message: "You can only update your own profile!",
+      });
+    }
+
+    // Remove sensitive fields that shouldn't be updated directly
+    delete updateData.password;
+    delete updateData.role; // Only admin can change roles
+    delete updateData._id;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+
+    // If non-admin user tries to change role, prevent it
+    if (req.user.role !== 'admin' && updateData.role) {
+      delete updateData.role;
+    }
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password'); // Exclude password from response
 
     res.status(200).json({
-      message: "User is updated successfully!",
-      updatedUser,
+      status: 'success',
+      message: "User updated successfully!",
+      data: { user: updatedUser }
     });
   } catch (error) {
-    res.status(500).json(error);
+    console.error('Update user error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 }
 

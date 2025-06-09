@@ -1,31 +1,86 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 import axios from "../api/axios";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import {
   Card,
   CardBody,
   Typography,
   Button,
   Spinner,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
+  Input,
+  Textarea,
 } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { PlusIcon } from "@heroicons/react/24/outline";
 
 function Categories() {
+  const { t } = useTranslation();
+  const { currentUser } = useSelector((state) => state.auth);
+  const axiosPrivate = useAxiosPrivate();
+  const queryClient = useQueryClient();
+
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    description: '',
+    color: '#3B82F6'
+  });
+
   const { data: categories, isLoading } = useQuery(
     ["categories"],
     () => {
-      return axios.get("/event").then((res) => res.data);
+      return axios.get("/api/categories").then((res) => res.data.data);
     },
     {
       refetchOnWindowFocus: false,
     }
   );
 
+  // Create category mutation
+  const createCategoryMutation = useMutation(
+    async (categoryData) => {
+      const response = await axiosPrivate.post("/categories", categoryData);
+      return response.data;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["categories"]);
+        toast.success("Kategori başarıyla oluşturuldu!");
+        setShowCreateDialog(false);
+        setNewCategory({ name: '', description: '', color: '#3B82F6' });
+      },
+      onError: (error) => {
+        const errorMessage = error.response?.data?.message || "Kategori oluşturulurken hata oluştu";
+        toast.error(errorMessage);
+      },
+    }
+  );
+
+  const handleCreateCategory = (e) => {
+    e.preventDefault();
+    if (!newCategory.name.trim()) {
+      toast.error("Kategori adı gerekli!");
+      return;
+    }
+    createCategoryMutation.mutate(newCategory);
+  };
+
+  const isAdmin = currentUser?.role === 'admin';
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Spinner className="h-12 w-12" />
+        <Typography className="ml-4">{t("common.loading")}</Typography>
       </div>
     );
   }
@@ -37,13 +92,27 @@ function Categories() {
       exit={{ opacity: 0 }}
       className="container mx-auto px-4 py-8"
     >
-      <div className="mb-8 text-center">
-        <Typography variant="h2" color="blue-gray" className="mb-2">
-          Categories
-        </Typography>
-        <Typography color="gray" className="font-normal">
-          Browse posts by category
-        </Typography>
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <Typography variant="h2" color="blue-gray" className="mb-2">
+              {t("categories.title")}
+            </Typography>
+            <Typography color="gray" className="font-normal">
+              {t("categories.manageCategoriesDesc")}
+            </Typography>
+          </div>
+          {isAdmin && (
+            <Button
+              onClick={() => setShowCreateDialog(true)}
+              className="flex items-center gap-2"
+              color="blue"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Kategori Oluştur
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -51,20 +120,23 @@ function Categories() {
           <Card key={category._id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardBody>
               <Typography variant="h5" color="blue-gray" className="mb-2">
-                {category.title}
+                {category.name || category.title}
               </Typography>
               <Typography color="gray" className="font-normal mb-6 line-clamp-3">
-                {category.content || "Explore posts in this category"}
+                {category.description || category.content || t("categories.manageCategoriesDesc")}
               </Typography>
-              <div className="flex justify-end">
+              <div className="flex justify-between items-center">
+                <Typography variant="small" color="gray">
+                  {category.postCount || 0} posts
+                </Typography>
                 <Button
                   variant="text"
                   color="blue"
                   className="flex items-center gap-2"
                   as={Link}
-                  to={`/Category/${category._id}`}
+                  to={`/blog?category=${category.slug || category._id}`}
                 >
-                  View Posts
+                  {t("blog.viewAllPosts")}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -89,13 +161,84 @@ function Categories() {
       {(!categories || categories.length === 0) && (
         <div className="text-center py-12">
           <Typography variant="h5" color="blue-gray" className="mb-2">
-            No categories found
+            {t("categories.noCategoriesFound")}
           </Typography>
           <Typography color="gray" className="font-normal">
-            Check back later for new categories.
+            {t("categories.createFirstCategory")}
           </Typography>
         </div>
       )}
+
+      {/* Create Category Dialog */}
+      <Dialog open={showCreateDialog} handler={setShowCreateDialog} size="md">
+        <DialogHeader>Yeni Kategori Oluştur</DialogHeader>
+        <form onSubmit={handleCreateCategory}>
+          <DialogBody className="space-y-4">
+            <div>
+              <Typography variant="h6" color="blue-gray" className="mb-2">
+                Kategori Adı *
+              </Typography>
+              <Input
+                type="text"
+                value={newCategory.name}
+                onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                placeholder="Kategori adını girin"
+                required
+              />
+            </div>
+
+            <div>
+              <Typography variant="h6" color="blue-gray" className="mb-2">
+                Açıklama
+              </Typography>
+              <Textarea
+                value={newCategory.description}
+                onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                placeholder="Kategori açıklaması (isteğe bağlı)"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Typography variant="h6" color="blue-gray" className="mb-2">
+                Renk
+              </Typography>
+              <div className="flex items-center gap-4">
+                <input
+                  type="color"
+                  value={newCategory.color}
+                  onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
+                  className="w-12 h-12 rounded border border-gray-300"
+                />
+                <Input
+                  type="text"
+                  value={newCategory.color}
+                  onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
+                  placeholder="#3B82F6"
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </DialogBody>
+          <DialogFooter className="space-x-2">
+            <Button
+              variant="text"
+              color="red"
+              onClick={() => setShowCreateDialog(false)}
+              disabled={createCategoryMutation.isLoading}
+            >
+              İptal
+            </Button>
+            <Button
+              type="submit"
+              color="blue"
+              disabled={createCategoryMutation.isLoading || !newCategory.name.trim()}
+            >
+              {createCategoryMutation.isLoading ? "Oluşturuluyor..." : "Oluştur"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </Dialog>
     </motion.div>
   );
 }

@@ -268,10 +268,49 @@ async function getPostAnalytics(req, res, next) {
   }
 }
 
+// Get simple dashboard stats
+async function getSimpleDashboardStats(req, res, next) {
+  try {
+    const User = require('../models/User.model');
+
+    // Get basic counts
+    const totalUsers = await User.countDocuments({ isActive: true });
+    const totalPosts = await Post.countDocuments({ status: 'published' });
+
+    // Get total views and likes
+    const postStats = await Post.aggregate([
+      { $match: { status: 'published' } },
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: '$views' },
+          totalLikes: { $sum: '$likes' }
+        }
+      }
+    ]);
+
+    const stats = postStats[0] || { totalViews: 0, totalLikes: 0 };
+
+    res.json({
+      status: 'success',
+      data: {
+        totalUsers,
+        totalPosts,
+        totalViews: stats.totalViews,
+        totalLikes: stats.totalLikes
+      }
+    });
+  } catch (error) {
+    logger.error('Get simple dashboard stats error:', error);
+    next(error);
+  }
+}
+
 module.exports = {
   getDashboardAnalytics,
   getDetailedAnalytics,
   getRealtimeAnalytics,
   trackPageView,
-  getPostAnalytics
+  getPostAnalytics,
+  getSimpleDashboardStats
 };

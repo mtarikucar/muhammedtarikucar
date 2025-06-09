@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const http = require('http');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 
 // Import configuration
 const config = require('./config');
@@ -16,15 +17,31 @@ const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
 const { requestLogger } = require('./utils/logger');
 const { logger } = require('./utils/logger');
 const { setupSwagger } = require('./utils/swagger');
+const socketHandler = require('./utils/socketHandler');
 
 // Create Express app
 const app = express();
 const server = http.createServer(app);
 
+// Initialize Socket.IO
+const io = require('socket.io')(server, {
+  cors: {
+    origin: config.cors.allowlist,
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+// Setup socket handlers
+socketHandler(io);
+
 // CORS configuration
 const corsOptionsDelegate = function (req, callback) {
+  const origin = req.header('Origin');
+  const isAllowed = !origin || config.cors.allowlist.includes(origin);
+
   const corsOptions = {
-    origin: config.cors.allowlist.indexOf(req.header('Origin')) !== -1,
+    origin: isAllowed,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -70,6 +87,15 @@ const authRoutes = require('./routers/auth');
 const userRoutes = require('./routers/user');
 const analyticsRoutes = require('./routers/analytics');
 const newsletterRoutes = require('./routers/newsletter');
+const categoryRoutes = require('./routers/category');
+const searchRoutes = require('./routers/search');
+const commentRoutes = require('./routers/comment');
+const messageRoutes = require('./routers/message');
+const roomRoutes = require('./routers/room');
+const communityRoutes = require('./routers/community');
+const eventRoutes = require('./routers/event');
+const uploadRoutes = require('./routers/upload');
+const chatRoutes = require('./routers/chat');
 
 // Setup Swagger documentation
 setupSwagger(app);
@@ -84,12 +110,24 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/communities', communityRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

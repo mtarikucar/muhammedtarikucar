@@ -34,9 +34,9 @@ const blogPostSchema = new Schema(
             caption: String,
         }],
         category: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category',
             required: true,
-            enum: ['technology', 'programming', 'web-development', 'mobile', 'ai', 'career', 'personal', 'tutorial'],
         },
         tags: [{
             type: String,
@@ -110,6 +110,11 @@ const blogPostSchema = new Schema(
                     type: String,
                     required: true,
                 },
+                userId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    default: null,
+                },
                 isApproved: {
                     type: Boolean,
                     default: false,
@@ -151,6 +156,22 @@ blogPostSchema.index({ publishedAt: -1 });
 blogPostSchema.index({ views: -1 });
 blogPostSchema.index({ featured: 1, status: 1 });
 
+// Text search indexes
+blogPostSchema.index({
+    title: 'text',
+    content: 'text',
+    excerpt: 'text',
+    tags: 'text'
+}, {
+    weights: {
+        title: 10,
+        excerpt: 5,
+        tags: 3,
+        content: 1
+    },
+    name: 'post_text_index'
+});
+
 // Pre-save middleware to generate slug and calculate reading time
 blogPostSchema.pre('save', function(next) {
     if (this.isModified('title') && !this.slug) {
@@ -190,25 +211,25 @@ blogPostSchema.methods.incrementViews = function(viewData) {
 // Static method to get popular posts
 blogPostSchema.statics.getPopularPosts = function(limit = 5) {
     return this.find({ status: 'published' })
+        .populate('author', 'name image role')
         .sort({ views: -1 })
-        .limit(limit)
-        .populate('author', 'name image');
+        .limit(limit);
 };
 
 // Static method to get recent posts
 blogPostSchema.statics.getRecentPosts = function(limit = 5) {
     return this.find({ status: 'published' })
+        .populate('author', 'name image role')
         .sort({ publishedAt: -1 })
-        .limit(limit)
-        .populate('author', 'name image');
+        .limit(limit);
 };
 
 // Static method to get featured posts
 blogPostSchema.statics.getFeaturedPosts = function(limit = 3) {
     return this.find({ status: 'published', featured: true })
+        .populate('author', 'name image role')
         .sort({ publishedAt: -1 })
-        .limit(limit)
-        .populate('author', 'name image');
+        .limit(limit);
 };
 
 module.exports = mongoose.model("Post", blogPostSchema);

@@ -17,7 +17,10 @@ import Settings from "../pages/Settings";
 import Categories from "../pages/Categories";
 import SearchResults from "../pages/SearchResults";
 import About from "../pages/About";
+import Chat from "../pages/Chat";
+import AdminDashboard from "../pages/AdminDashboard";
 import Unauthorized from "../pages/Unautharized";
+import NotFound from "../pages/NotFound";
 
 // Components
 import { Login } from "./Login.jsx";
@@ -51,7 +54,16 @@ function AnimatedRoutes() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/chat" element={<Chat />} />
           </Route>
+
+          {/* Admin Routes */}
+          <Route element={<RequireAuth allowedRoles={["admin"]} />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          </Route>
+
+          {/* Catch all route - must be last */}
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </AnimatePresence>

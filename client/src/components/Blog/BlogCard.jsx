@@ -71,7 +71,7 @@ const BlogCard = ({ post, featured = false }) => {
             )}
             <div className="absolute top-4 right-4">
               <Chip
-                value={post.category.replace('-', ' ')}
+                value={post.category ? post.category.replace('-', ' ') : 'Genel'}
                 color={getCategoryColor(post.category)}
                 className="capitalize"
               />
@@ -103,7 +103,7 @@ const BlogCard = ({ post, featured = false }) => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <Avatar
-                src={post.author?.image || '/default-avatar.png'}
+                src={post.author?.image || '/default-avatar.svg'}
                 alt={post.author?.name}
                 size="sm"
               />

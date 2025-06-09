@@ -8,19 +8,32 @@ const commentSchema = new Mongoose.Schema(
       ref: "User",
       required: true,
     },
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post",
-        required: true,
-      },
+    postId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+      required: true,
+    },
     content: {
       type: String,
       required: true,
     },
-    holder: {
+    parentComment: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Comment"
+      ref: "Comment",
+      default: null
     },
+    isApproved: {
+      type: Boolean,
+      default: false
+    },
+    likes: {
+      type: Number,
+      default: 0
+    },
+    likedBy: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }]
   },
   {
     timestamps: true,

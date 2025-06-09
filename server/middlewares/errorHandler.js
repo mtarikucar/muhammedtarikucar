@@ -62,8 +62,16 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'ValidationError') {
     statusCode = 400;
     errorType = ErrorTypes.VALIDATION_ERROR;
-    message = 'Validation Error';
+    message = 'Document failed validation';
     details = Object.values(err.errors).map(val => val.message);
+  }
+
+  // Handle MongoDB document validation errors
+  if (err.name === 'MongoServerError' && err.code === 121) {
+    statusCode = 400;
+    errorType = ErrorTypes.VALIDATION_ERROR;
+    message = 'Document failed validation';
+    details = err.errInfo?.details || null;
   }
 
   // Handle Mongoose duplicate key errors

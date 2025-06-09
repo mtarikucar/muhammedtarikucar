@@ -8,12 +8,17 @@ const useRefreshToken = () => {
     const dispatch = useDispatch();
     
     const refresh = async () => {
-        const response = await axios.get('/refresh', {
-            withCredentials: true
-        });
-        dispatch(loginSuccess({...auth, accessToken: response.data.accessToken}));
+        try {
+            const response = await axios.post('/auth/refresh-token', {
+                refreshToken: auth.refreshToken
+            });
+            dispatch(loginSuccess({...auth, accessToken: response.data.accessToken}));
 
-        return response.data.accessToken;
+            return response.data.accessToken;
+        } catch (error) {
+            console.error('Token refresh failed:', error);
+            throw error;
+        }
     }
     return refresh;
 };

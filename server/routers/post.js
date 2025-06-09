@@ -11,9 +11,10 @@ const {
   getFeaturedPosts,
   getPopularPosts,
   getRecentPosts,
-  getPostsByCategory
+  getPostsByCategory,
+  getUserPosts
 } = require("../controllers/post");
-const { verifyTokenAndAuth, verifyTokenAndAdmin } = require("../middlewares/verifyToken");
+const { verifyTokenAndAuth, verifyTokenAndAdmin, authenticate } = require("../middlewares/verifyToken");
 const router = require("express").Router();
 
 // Public routes
@@ -24,14 +25,21 @@ router.get("/recent", getRecentPosts);
 router.get("/category/:category", getPostsByCategory);
 router.get("/:slug", getPostBySlug);
 
-// Comment routes (public for adding, admin for moderation)
-router.post('/:slug/comments', addComment);
-router.post('/:slug/like', toggleLike);
+// Comment routes (authenticated users can add comments)
+router.post('/:slug/comments', authenticate, addComment);
+router.post('/:slug/like', authenticate, toggleLike);
 
-// Admin routes
-router.post("/", verifyTokenAndAdmin, createPost);
-router.put("/:id", verifyTokenAndAdmin, updatePost);
-router.delete("/:id", verifyTokenAndAdmin, deletePost);
+// User routes (authenticated users can create posts)
+router.post("/", verifyTokenAndAuth, createPost);
+
+// Get user's own posts
+router.get("/my-posts", authenticate, getUserPosts);
+
+// Post management routes (users can edit their own posts, admins can edit any)
+router.put("/:id", verifyTokenAndAuth, updatePost);
+router.delete("/:id", verifyTokenAndAuth, deletePost);
+
+// Admin-only routes
 router.patch("/comments/:postId/:commentId", verifyTokenAndAdmin, moderateComment);
 router.delete("/comments/:postId/:commentId", verifyTokenAndAdmin, deleteComment);
 

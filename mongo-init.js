@@ -4,6 +4,21 @@
 // Switch to the blog database
 db = db.getSiblingDB('blog_db');
 
+// Drop existing collections if they exist to reset validation
+try {
+  db.users.drop();
+  print('Dropped existing users collection');
+} catch (e) {
+  print('Users collection did not exist');
+}
+
+try {
+  db.posts.drop();
+  print('Dropped existing posts collection');
+} catch (e) {
+  print('Posts collection did not exist');
+}
+
 // Create collections with validation
 db.createCollection('users', {
   validator: {
@@ -27,8 +42,17 @@ db.createCollection('users', {
         },
         role: {
           bsonType: 'string',
-          enum: ['user', 'admin'],
-          description: 'must be either user or admin'
+          enum: ['member', 'admin'],
+          description: 'must be either member or admin'
+        },
+        isActive: {
+          bsonType: 'bool',
+          description: 'must be a boolean'
+        },
+        gender: {
+          bsonType: 'string',
+          enum: ['male', 'female', 'not selected'],
+          description: 'must be male, female, or not selected'
         }
       }
     }
@@ -90,7 +114,8 @@ db.users.insertOne({
   role: 'admin',
   image: '/default-avatar.png',
   bio: 'Blog administrator',
-  isEmailVerified: true,
+  isActive: true,
+  gender: 'not selected',
   createdAt: new Date(),
   updatedAt: new Date()
 });

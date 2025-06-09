@@ -24,149 +24,179 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutSuccess } from "../../store/AuthSlice";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import SearchBar from "../SearchBar/SearchBar";
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 
-// Navigation links
-const navListItems = [
-  {
-    label: "Ana Sayfa",
-    path: "/",
-  },
-  {
-    label: "Blog",
-    path: "/blog",
-  },
-  {
-    label: "Hakkımda",
-    path: "/about",
-  },
-];
 
-// Profile menu items
-const profileMenuItems = [
-  {
-    label: "Profilim",
-    icon: UserCircleIcon,
-    path: "/profile",
-  },
-  {
-    label: "Ayarlar",
-    icon: Cog6ToothIcon,
-    path: "/settings",
-  },
-  {
-    label: "Yazı Yaz",
-    icon: InboxArrowDownIcon,
-    path: "/upload",
-  },
-  {
-    label: "Çıkış Yap",
-    icon: PowerIcon,
-    action: "logout",
-  },
-];
 
-function NavList() {
-  return (
-    <ul className="mb-4 mt-2 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
-      {navListItems.map(({ label, path }, key) => (
-        <Typography
-          key={key}
-          as="li"
-          variant="small"
-          color="blue-gray"
-          className="p-1 font-normal"
-        >
-          <NavLink
-            to={path}
-            className={({ isActive }) =>
-              `flex items-center hover:text-primary-500 transition-colors ${
-                isActive ? "text-primary-500 font-medium" : ""
-              }`
-            }
-          >
-            {label}
-          </NavLink>
-        </Typography>
-      ))}
-    </ul>
-  );
-}
 
-function ProfileMenu() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { currentUser } = useSelector((store) => store.auth);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const closeMenu = () => setIsMenuOpen(false);
-
-  const handleMenuItemClick = (action, path) => {
-    if (action === "logout") {
-      dispatch(logoutSuccess());
-      toast.success("Logged out successfully");
-      navigate("/");
-    } else if (path) {
-      navigate(path);
-    }
-    closeMenu();
-  };
-
-  return (
-    <Menu open={isMenuOpen} handler={setIsMenuOpen} placement="bottom-end">
-      <MenuHandler>
-        <Button
-          variant="text"
-          color="blue-gray"
-          className="flex items-center gap-1 rounded-full py-0.5 pr-2 pl-0.5 lg:ml-auto"
-        >
-          <Avatar
-            variant="circular"
-            size="sm"
-            alt="User"
-            className="border border-primary-500 p-0.5"
-            src={currentUser?.image || "https://ui-avatars.com/api/?name=" + currentUser?.name}
-          />
-          <Typography variant="small" className="hidden lg:inline-block">
-            {currentUser?.name || "User"}
-          </Typography>
-        </Button>
-      </MenuHandler>
-      <MenuList className="p-1">
-        {profileMenuItems.map(({ label, icon: Icon, path, action }, key) => {
-          return (
-            <MenuItem
-              key={key}
-              onClick={() => handleMenuItemClick(action, path)}
-              className={`flex items-center gap-2 rounded ${
-                action === "logout" ? "hover:bg-red-500/10 focus:bg-red-500/10" : ""
-              }`}
-            >
-              <Icon
-                className={`h-4 w-4 ${action === "logout" ? "text-red-500" : ""}`}
-                strokeWidth={2}
-              />
-              <Typography
-                as="span"
-                variant="small"
-                className="font-normal"
-                color={action === "logout" ? "red" : "inherit"}
-              >
-                {label}
-              </Typography>
-            </MenuItem>
-          );
-        })}
-      </MenuList>
-    </Menu>
-  );
-}
 
 export default function MainNavbar() {
+  const { t } = useTranslation();
   const [openNav, setOpenNav] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
   const { currentUser } = useSelector((store) => store.auth);
   const navigate = useNavigate();
+
+  // Navigation links
+  const navListItems = [
+    {
+      label: t("nav.home"),
+      path: "/",
+    },
+    {
+      label: t("nav.blog"),
+      path: "/blog",
+    },
+    {
+      label: t("nav.about"),
+      path: "/about",
+    },
+  ];
+
+  // Authenticated navigation links
+  const authNavListItems = [
+    ...navListItems,
+    {
+      label: "Chat",
+      path: "/chat",
+    },
+  ];
+
+  // Profile menu items
+  const getProfileMenuItems = () => {
+    const baseItems = [
+      {
+        label: t("nav.profile"),
+        icon: UserCircleIcon,
+        path: "/profile",
+      },
+      {
+        label: t("nav.settings"),
+        icon: Cog6ToothIcon,
+        path: "/settings",
+      },
+      {
+        label: t("nav.writePost"),
+        icon: InboxArrowDownIcon,
+        path: "/upload",
+      },
+    ];
+
+    // Add admin dashboard for admin users
+    if (currentUser?.role === 'admin') {
+      baseItems.splice(2, 0, {
+        label: t("nav.adminDashboard"),
+        icon: Cog6ToothIcon,
+        path: "/admin/dashboard",
+      });
+    }
+
+    baseItems.push({
+      label: t("nav.logout"),
+      icon: PowerIcon,
+      action: "logout",
+    });
+
+    return baseItems;
+  };
+
+  function NavList() {
+    const linksToShow = currentUser ? authNavListItems : navListItems;
+
+    return (
+      <ul className="mb-4 mt-2 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
+        {linksToShow.map(({ label, path }, key) => (
+          <Typography
+            key={key}
+            as="li"
+            variant="small"
+            color="blue-gray"
+            className="p-1 font-normal"
+          >
+            <NavLink
+              to={path}
+              className={({ isActive }) =>
+                `flex items-center hover:text-primary-500 transition-colors ${
+                  isActive ? "text-primary-500 font-medium" : ""
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          </Typography>
+        ))}
+      </ul>
+    );
+  }
+
+  function ProfileMenu() {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const dispatch = useDispatch();
+
+    const closeMenu = () => setIsMenuOpen(false);
+
+    const handleMenuItemClick = (action, path) => {
+      if (action === "logout") {
+        dispatch(logoutSuccess());
+        toast.success(t("auth.loginSuccess"));
+        navigate("/");
+      } else if (path) {
+        navigate(path);
+      }
+      closeMenu();
+    };
+
+    return (
+      <Menu open={isMenuOpen} handler={setIsMenuOpen} placement="bottom-end">
+        <MenuHandler>
+          <Button
+            variant="text"
+            color="blue-gray"
+            className="flex items-center gap-1 rounded-full py-0.5 pr-2 pl-0.5 lg:ml-auto"
+          >
+            <Avatar
+              variant="circular"
+              size="sm"
+              alt="User"
+              className="border border-primary-500 p-0.5"
+              src={currentUser?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'User')}`}
+            />
+            <Typography variant="small" className="hidden lg:inline-block">
+              {currentUser?.name || "User"}
+            </Typography>
+          </Button>
+        </MenuHandler>
+        <MenuList className="p-1">
+          {getProfileMenuItems().map(({ label, icon: Icon, path, action }, key) => {
+            return (
+              <MenuItem
+                key={key}
+                onClick={() => handleMenuItemClick(action, path)}
+                className={`flex items-center gap-2 rounded ${
+                  action === "logout" ? "hover:bg-red-500/10 focus:bg-red-500/10" : ""
+                }`}
+              >
+                <Icon
+                  className={`h-4 w-4 ${action === "logout" ? "text-red-500" : ""}`}
+                  strokeWidth={2}
+                />
+                <Typography
+                  as="span"
+                  variant="small"
+                  className="font-normal"
+                  color={action === "logout" ? "red" : "inherit"}
+                >
+                  {label}
+                </Typography>
+              </MenuItem>
+            );
+          })}
+        </MenuList>
+      </Menu>
+    );
+  }
 
   useEffect(() => {
     window.addEventListener(
@@ -200,6 +230,7 @@ export default function MainNavbar() {
           <div className="hidden lg:block">
             <SearchBar />
           </div>
+          <LanguageSwitcher />
           {currentUser ? (
             <ProfileMenu />
           ) : (
@@ -209,7 +240,7 @@ export default function MainNavbar() {
               className="hidden lg:inline-block"
               onClick={() => navigate("/login")}
             >
-              <span>Giriş Yap</span>
+              <span>{t("nav.login")}</span>
             </Button>
           )}
           <IconButton
@@ -234,6 +265,9 @@ export default function MainNavbar() {
       <MobileNav open={openNav}>
         <div className="container mx-auto">
           <NavList />
+          <div className="mb-4">
+            <LanguageSwitcher />
+          </div>
           {!currentUser && (
             <div className="flex items-center gap-x-1">
               <Button
@@ -246,7 +280,7 @@ export default function MainNavbar() {
                   setOpenNav(false);
                 }}
               >
-                <span>Giriş Yap</span>
+                <span>{t("nav.login")}</span>
               </Button>
               <Button
                 fullWidth
@@ -258,7 +292,7 @@ export default function MainNavbar() {
                   setOpenNav(false);
                 }}
               >
-                <span>Kayıt Ol</span>
+                <span>{t("auth.register")}</span>
               </Button>
             </div>
           )}

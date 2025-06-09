@@ -216,7 +216,7 @@ const BlogSidebar = ({
                 {categories.map((category, index) => (
                   <Link key={index} to={`/blog/category/${category._id}`}>
                     <Chip
-                      value={`${category._id.replace('-', ' ')} (${category.count})`}
+                      value={`${category._id ? category._id.replace('-', ' ') : 'Genel'} (${category.count || 0})`}
                       color={getCategoryColor(category._id)}
                       className="capitalize cursor-pointer hover:shadow-md transition-shadow"
                     />

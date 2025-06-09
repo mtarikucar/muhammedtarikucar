@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import axios from "../api/axios";
 import {
   Typography,
@@ -15,6 +16,7 @@ import {
 import Posts from "../components/Post/Posts";
 
 function SearchResults() {
+  const { t } = useTranslation();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const query = searchParams.get("q") || "";
@@ -50,10 +52,10 @@ function SearchResults() {
     return (
       <div className="text-center py-12">
         <Typography variant="h4" color="blue-gray" className="mb-2">
-          No search query provided
+          {t("search.noQuery")}
         </Typography>
         <Typography color="gray" className="font-normal">
-          Please enter a search term to see results.
+          {t("search.noQueryDesc")}
         </Typography>
       </div>
     );
@@ -68,10 +70,10 @@ function SearchResults() {
     >
       <div className="mb-8">
         <Typography variant="h3" color="blue-gray" className="mb-2">
-          Search Results
+          {t("search.resultsFor")}
         </Typography>
         <Typography color="gray" className="font-normal">
-          Showing results for: <span className="font-medium">"{query}"</span>
+          {t("search.resultsFor")}: <span className="font-medium">"{query}"</span>
         </Typography>
       </div>
 
@@ -83,13 +85,13 @@ function SearchResults() {
         <Tabs value={activeTab} onChange={(value) => setActiveTab(value)}>
           <TabsHeader>
             <Tab value="posts">
-              Posts {results.posts && `(${results.posts.length})`}
+              {t("search.posts")} {results.posts && `(${results.posts.length})`}
             </Tab>
             <Tab value="users">
-              Users {results.users && `(${results.users.length})`}
+              {t("search.users")} {results.users && `(${results.users.length})`}
             </Tab>
             <Tab value="categories">
-              Categories {results.categories && `(${results.categories.length})`}
+              {t("search.categories")} {results.categories && `(${results.categories.length})`}
             </Tab>
           </TabsHeader>
           <TabsBody>

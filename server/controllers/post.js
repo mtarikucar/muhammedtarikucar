@@ -113,23 +113,26 @@ async function getPosts(req, res, next) {
 
     // Execute query with pagination
     const posts = await Post.find(query)
-      .populate('author', 'name image bio')
+      .populate('author', 'name image bio role')
       .sort(sortOption)
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .select('-content'); // Exclude full content for list view
+
+    // Filter posts to show only admin posts
+    const adminPosts = posts.filter(post => post.author && post.author.role === 'admin');
 
     const total = await Post.countDocuments(query);
 
     res.json({
       status: 'success',
       data: {
-        posts,
+        posts: adminPosts,
         pagination: {
           currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalPosts: total,
-          hasNext: page < Math.ceil(total / limit),
+          totalPages: Math.ceil(adminPosts.length / limit),
+          totalPosts: adminPosts.length,
+          hasNext: page < Math.ceil(adminPosts.length / limit),
           hasPrev: page > 1
         }
       }
@@ -177,33 +180,50 @@ async function getPostBySlug(req, res, next) {
   }
 }
 
-// Update post (admin only)
+// Update post (users can update their own posts, admins can update any)
 async function updatePost(req, res, next) {
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    // Find the post first to check ownership
+    const post = await Post.findById(id).populate('author', 'name email image');
+
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
+    }
+
+    // Check if user is the author or admin
+    const isAuthor = post.author._id.toString() === req.user.id;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isAuthor && !isAdmin) {
+      return next(AppError.forbidden('You can only update your own posts'));
+    }
 
     // Remove fields that shouldn't be updated directly
     delete updateData.author;
     delete updateData.views;
     delete updateData.viewHistory;
 
-    const post = await Post.findByIdAndUpdate(
+    // Non-admin users can't change certain fields
+    if (!isAdmin) {
+      delete updateData.featured;
+      delete updateData.status; // Only admin can change status
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true }
     ).populate('author', 'name email image');
 
-    if (!post) {
-      return next(AppError.notFound('Post not found'));
-    }
-
-    logger.info(`Post updated: ${post.title} by ${req.user.name}`);
+    logger.info(`Post updated: ${updatedPost.title} by ${req.user.name || req.user.id}`);
 
     res.json({
       status: 'success',
       message: 'Post updated successfully',
-      data: { post }
+      data: { post: updatedPost }
     });
   } catch (error) {
     logger.error('Update post error:', error);
@@ -211,18 +231,29 @@ async function updatePost(req, res, next) {
   }
 }
 
-// Delete post (admin only)
+// Delete post (users can delete their own posts, admins can delete any)
 async function deletePost(req, res, next) {
   try {
     const { id } = req.params;
 
-    const post = await Post.findByIdAndDelete(id);
+    // Find the post first to check ownership
+    const post = await Post.findById(id).populate('author', 'name email image');
 
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
-    logger.info(`Post deleted: ${post.title} by ${req.user.name}`);
+    // Check if user is the author or admin
+    const isAuthor = post.author._id.toString() === req.user.id;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isAuthor && !isAdmin) {
+      return next(AppError.forbidden('You can only delete your own posts'));
+    }
+
+    await Post.findByIdAndDelete(id);
+
+    logger.info(`Post deleted: ${post.title} by ${req.user.name || req.user.id}`);
 
     res.json({
       status: 'success',
@@ -234,15 +265,15 @@ async function deletePost(req, res, next) {
   }
 }
 
-// Add comment to post
+// Add comment to post (authenticated users)
 async function addComment(req, res, next) {
   try {
     const { slug } = req.params;
-    const { name, email, website, text, parentComment } = req.body;
+    const { text, parentComment } = req.body;
 
     // Validate required fields
-    if (!name || !email || !text) {
-      return next(AppError.validation('Name, email, and comment text are required'));
+    if (!text || text.trim().length === 0) {
+      return next(AppError.validation('Comment text is required'));
     }
 
     const post = await Post.findOne({ slug, status: 'published' });
@@ -251,24 +282,25 @@ async function addComment(req, res, next) {
       return next(AppError.notFound('Post not found'));
     }
 
-    // Create new comment
+    // Create new comment using authenticated user info
     const newComment = {
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      website: website || '',
+      name: req.user.name || 'Anonymous',
+      email: req.user.email || '',
+      website: '',
       text: text.trim(),
       parentComment: parentComment || null,
-      isApproved: false, // Comments need approval
+      isApproved: true, // Auto-approve comments from authenticated users
+      userId: req.user.id // Add user reference
     };
 
     post.comments.push(newComment);
     await post.save();
 
-    logger.info(`New comment added to post: ${post.title} by ${name}`);
+    logger.info(`New comment added to post: ${post.title} by ${req.user.name || req.user.id}`);
 
     res.status(201).json({
       status: 'success',
-      message: 'Comment submitted successfully. It will be visible after approval.',
+      message: 'Comment added successfully.',
       data: { comment: newComment }
     });
   } catch (error) {
@@ -376,16 +408,19 @@ async function toggleLike(req, res, next) {
   }
 }
 
-// Get featured posts
+// Get featured posts (admin only)
 async function getFeaturedPosts(req, res, next) {
   try {
     const { limit = 3 } = req.query;
 
     const posts = await Post.getFeaturedPosts(parseInt(limit));
 
+    // Filter posts to show only admin posts
+    const adminPosts = posts.filter(post => post.author && post.author.role === 'admin');
+
     res.json({
       status: 'success',
-      data: { posts }
+      data: { posts: adminPosts }
     });
   } catch (error) {
     logger.error('Get featured posts error:', error);
@@ -393,16 +428,19 @@ async function getFeaturedPosts(req, res, next) {
   }
 }
 
-// Get popular posts
+// Get popular posts (admin only)
 async function getPopularPosts(req, res, next) {
   try {
     const { limit = 5 } = req.query;
 
     const posts = await Post.getPopularPosts(parseInt(limit));
 
+    // Filter posts to show only admin posts
+    const adminPosts = posts.filter(post => post.author && post.author.role === 'admin');
+
     res.json({
       status: 'success',
-      data: { posts }
+      data: { posts: adminPosts }
     });
   } catch (error) {
     logger.error('Get popular posts error:', error);
@@ -410,16 +448,19 @@ async function getPopularPosts(req, res, next) {
   }
 }
 
-// Get recent posts
+// Get recent posts (admin only)
 async function getRecentPosts(req, res, next) {
   try {
     const { limit = 5 } = req.query;
 
     const posts = await Post.getRecentPosts(parseInt(limit));
 
+    // Filter posts to show only admin posts
+    const adminPosts = posts.filter(post => post.author && post.author.role === 'admin');
+
     res.json({
       status: 'success',
-      data: { posts }
+      data: { posts: adminPosts }
     });
   } catch (error) {
     logger.error('Get recent posts error:', error);
@@ -465,6 +506,81 @@ async function getPostsByCategory(req, res, next) {
   }
 }
 
+// Get user's own posts
+async function getUserPosts(req, res, next) {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      search,
+      sort = 'createdAt'
+    } = req.query;
+
+    // Build query for user's posts
+    const query = { author: req.user.id };
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { excerpt: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } }
+      ];
+    }
+
+    // Sort options
+    let sortOption = {};
+    switch (sort) {
+      case 'views':
+        sortOption = { views: -1 };
+        break;
+      case 'likes':
+        sortOption = { likes: -1 };
+        break;
+      case 'title':
+        sortOption = { title: 1 };
+        break;
+      case 'publishedAt':
+        sortOption = { publishedAt: -1 };
+        break;
+      default:
+        sortOption = { createdAt: -1 };
+    }
+
+    // Execute query with pagination
+    const posts = await Post.find(query)
+      .populate('author', 'name image bio role')
+      .populate('category', 'name slug color')
+      .sort(sortOption)
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Post.countDocuments(query);
+
+    res.json({
+      status: 'success',
+      data: {
+        posts,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalPosts: total,
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Get user posts error:', error);
+    next(error);
+  }
+}
+
 module.exports = {
   createPost,
   getPosts,
@@ -478,5 +594,6 @@ module.exports = {
   getFeaturedPosts,
   getPopularPosts,
   getRecentPosts,
-  getPostsByCategory
+  getPostsByCategory,
+  getUserPosts
 };

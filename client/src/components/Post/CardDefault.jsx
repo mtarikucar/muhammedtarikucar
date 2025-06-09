@@ -105,9 +105,10 @@ export function CardDefault({ post }) {
             <div
               dangerouslySetInnerHTML={{
                 __html:
-                  post &&
-                  post.content.substring(0, 200) +
-                    (post && post.content.length > 200 ? "..." : ""),
+                  post && post.content
+                    ? post.content.substring(0, 200) +
+                      (post.content.length > 200 ? "..." : "")
+                    : "İçerik bulunamadı...",
               }}
             ></div>
           </Typography>

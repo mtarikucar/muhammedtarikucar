@@ -1,36 +1,39 @@
 import { Typography } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const currentYear = new Date().getFullYear();
 
-const footerLinks = [
-  {
-    title: "About",
-    items: [
-      { label: "About Me", path: "/about" },
-      { label: "Blog", path: "/blog" },
-      { label: "Contact", path: "/contact" },
-    ],
-  },
-  {
-    title: "Resources",
-    items: [
-      { label: "Categories", path: "/categories" },
-      { label: "Latest Posts", path: "/blog" },
-      { label: "FAQ", path: "/faq" },
-    ],
-  },
-  {
-    title: "Follow Me",
-    items: [
-      { label: "Instagram", path: "https://www.instagram.com/tarikucr", external: true },
-      { label: "GitHub", path: "https://github.com/mtarikucar", external: true },
-      { label: "LinkedIn", path: "https://linkedin.com/in/muhammedtarikucar", external: true },
-    ],
-  },
-];
-
 export default function Footer() {
+  const { t } = useTranslation();
+
+  const footerLinks = [
+    {
+      title: t("footer.about"),
+      items: [
+        { label: t("footer.aboutMe"), path: "/about" },
+        { label: t("nav.blog"), path: "/blog" },
+        { label: t("footer.contact"), path: "/contact" },
+      ],
+    },
+    {
+      title: t("footer.resources"),
+      items: [
+        { label: t("home.categories"), path: "/categories" },
+        { label: t("footer.latestPosts"), path: "/blog" },
+        { label: t("footer.faq"), path: "/faq" },
+      ],
+    },
+    {
+      title: t("footer.followMe"),
+      items: [
+        { label: t("footer.instagram"), path: "https://www.instagram.com/tarikucr", external: true },
+        { label: t("footer.github"), path: "https://github.com/mtarikucar", external: true },
+        { label: t("footer.linkedin"), path: "https://linkedin.com/in/muhammedtarikucar", external: true },
+      ],
+    },
+  ];
+
   return (
     <footer className="relative w-full mt-8 bg-white shadow-md">
       <div className="mx-auto w-full max-w-7xl px-8">
@@ -40,7 +43,7 @@ export default function Footer() {
               Muhammed Tarık Uçar
             </Typography>
             <Typography className="text-gray-600 mb-6">
-              Personal blog and portfolio website showcasing my work, thoughts, and experiences.
+              {t("footer.description")}
             </Typography>
           </div>
           {footerLinks.map(({ title, items }) => (
@@ -76,7 +79,7 @@ export default function Footer() {
         </div>
         <div className="mt-12 flex w-full flex-col items-center justify-center border-t border-gray-200 py-4 md:flex-row md:justify-between">
           <Typography variant="small" className="mb-4 text-center font-normal text-gray-600 md:mb-0">
-            &copy; {currentYear} Muhammed Tarık Uçar. All Rights Reserved.
+            &copy; {currentYear} Muhammed Tarık Uçar. {t("footer.copyright")}
           </Typography>
           <div className="flex gap-4 text-gray-600 sm:justify-center">
             <a href="https://www.instagram.com/tarikucr" target="_blank" rel="noopener noreferrer" className="opacity-80 hover:opacity-100 transition-opacity">

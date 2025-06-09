@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardBody,
@@ -9,6 +10,8 @@ import {
 } from "@material-tailwind/react";
 
 function About() {
+  const { t } = useTranslation();
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -18,10 +21,10 @@ function About() {
     >
       <div className="text-center mb-12">
         <Typography variant="h2" color="blue-gray" className="mb-4">
-          About Me
+          {t("about.title")}
         </Typography>
         <Typography variant="lead" className="max-w-3xl mx-auto">
-          Welcome to my personal blog and portfolio website. I'm Muhammed Tarık Uçar, a developer and content creator.
+          {t("about.welcome")}
         </Typography>
       </div>
 
@@ -31,10 +34,10 @@ function About() {
             <CardBody className="flex flex-col justify-between h-full">
               <div>
                 <Typography variant="h4" color="blue-gray" className="mb-4">
-                  My Journey
+                  {t("about.journey")}
                 </Typography>
                 <Typography className="mb-6 font-normal text-gray-700">
-                  I'm passionate about technology, development, and sharing knowledge. My journey in the tech world started with a curiosity about how things work and evolved into a career building digital experiences.
+                  {t("about.journeyDesc")}
                 </Typography>
                 <Typography className="mb-6 font-normal text-gray-700">
                   Through this blog, I share my experiences, insights, and the lessons I've learned along the way. I believe in continuous learning and growth, and I hope my content inspires others on their own journeys.

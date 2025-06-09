@@ -11,6 +11,7 @@ import store from "./store/index";
 import { persistor } from "./store/index";
 
 import "./index.css";
+import "./i18n"; // Initialize i18n
 import App from "./App";
 
 const queryClient = new QueryClient();

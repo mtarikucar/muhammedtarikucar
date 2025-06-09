@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "../../api/axios";
 import { CardDefault } from "./CardDefault";
 
-function Posts({ userId, category, event }) {
+function Posts({ userId, category, event, searchQuery }) {
   const { data: posts } = useQuery(
-    ["posts", userId],
+    ["posts", userId, category, event, searchQuery],
     () => {
       const params = {};
       if (userId) {
@@ -14,7 +14,12 @@ function Posts({ userId, category, event }) {
       if (event) {
         params.category = event;
       }
-
+      if (category) {
+        params.category = category;
+      }
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
 
       return axios.get("/posts", { params }).then((res) => res.data);
     },

@@ -192,7 +192,7 @@ const BlogPost = () => {
                 {/* Category */}
                 <div className="mb-4">
                   <Chip
-                    value={post.category.replace('-', ' ')}
+                    value={post.category ? post.category.replace('-', ' ') : 'Genel'}
                     color={getCategoryColor(post.category)}
                     className="capitalize"
                   />
@@ -207,7 +207,7 @@ const BlogPost = () => {
                 <div className="flex flex-wrap items-center gap-6 mb-6 text-gray-600">
                   <div className="flex items-center gap-2">
                     <Avatar
-                      src={post.author?.image || '/default-avatar.png'}
+                      src={post.author?.image || '/default-avatar.svg'}
                       alt={post.author?.name}
                       size="sm"
                     />
@@ -221,14 +221,14 @@ const BlogPost = () => {
                   <div className="flex items-center gap-1">
                     <CalendarDaysIcon className="h-4 w-4" />
                     <Typography variant="small">
-                      {formatDate(post.publishedAt)}
+                      {formatDate(post.publishedAt || post.createdAt)}
                     </Typography>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <ClockIcon className="h-4 w-4" />
                     <Typography variant="small">
-                      {post.readingTime} dakika okuma
+                      {post.readingTime || 1} dakika okuma
                     </Typography>
                   </div>
                   

@@ -1,0 +1,219 @@
+/* RTL Support Styles */
+
+/* Base RTL styles */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Arabic UI Text', 'Arabic UI Display';
+}
+
+/* Navigation RTL */
+[dir="rtl"] .navbar {
+  direction: rtl;
+}
+
+[dir="rtl"] .navbar .flex {
+  flex-direction: row-reverse;
+}
+
+/* Menu items RTL */
+[dir="rtl"] .menu-list {
+  text-align: right;
+}
+
+[dir="rtl"] .menu-item {
+  flex-direction: row-reverse;
+}
+
+/* Cards and content RTL */
+[dir="rtl"] .card {
+  text-align: right;
+}
+
+[dir="rtl"] .flex.items-center {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .flex.gap-2 > *:not(:last-child) {
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+[dir="rtl"] .flex.gap-4 > *:not(:last-child) {
+  margin-left: 1rem;
+  margin-right: 0;
+}
+
+/* Button groups RTL */
+[dir="rtl"] .flex.justify-center {
+  flex-direction: row-reverse;
+}
+
+/* Grid layouts RTL */
+[dir="rtl"] .grid {
+  direction: rtl;
+}
+
+/* Form elements RTL */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] input::placeholder,
+[dir="rtl"] textarea::placeholder {
+  text-align: right;
+}
+
+/* Icons RTL - flip horizontally for directional icons */
+[dir="rtl"] .icon-arrow-right {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .icon-arrow-left {
+  transform: scaleX(-1);
+}
+
+/* Margins and padding adjustments for RTL */
+[dir="rtl"] .mr-4 {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+[dir="rtl"] .ml-4 {
+  margin-left: 0;
+  margin-right: 1rem;
+}
+
+[dir="rtl"] .pr-4 {
+  padding-right: 0;
+  padding-left: 1rem;
+}
+
+[dir="rtl"] .pl-4 {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+/* Specific component adjustments */
+[dir="rtl"] .blog-card {
+  text-align: right;
+}
+
+[dir="rtl"] .blog-sidebar {
+  text-align: right;
+}
+
+/* Search bar RTL */
+[dir="rtl"] .search-bar {
+  direction: rtl;
+}
+
+[dir="rtl"] .search-bar input {
+  text-align: right;
+  padding-right: 3rem;
+  padding-left: 1rem;
+}
+
+[dir="rtl"] .search-bar button {
+  right: auto;
+  left: 0.25rem;
+}
+
+/* Language switcher RTL */
+[dir="rtl"] .language-switcher {
+  direction: rtl;
+}
+
+/* Footer RTL */
+[dir="rtl"] .footer {
+  text-align: right;
+}
+
+[dir="rtl"] .footer .grid {
+  direction: rtl;
+}
+
+/* Toast notifications RTL */
+[dir="rtl"] .Toastify__toast-container {
+  right: auto;
+  left: 1em;
+}
+
+[dir="rtl"] .Toastify__toast {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Mobile navigation RTL */
+[dir="rtl"] .mobile-nav {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Profile menu RTL */
+[dir="rtl"] .profile-menu {
+  direction: rtl;
+}
+
+[dir="rtl"] .profile-menu .menu-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+/* Blog post content RTL */
+[dir="rtl"] .blog-content {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .blog-content h1,
+[dir="rtl"] .blog-content h2,
+[dir="rtl"] .blog-content h3,
+[dir="rtl"] .blog-content h4,
+[dir="rtl"] .blog-content h5,
+[dir="rtl"] .blog-content h6 {
+  text-align: right;
+}
+
+/* Responsive adjustments for RTL */
+@media (max-width: 768px) {
+  [dir="rtl"] .mobile-menu {
+    text-align: right;
+  }
+  
+  [dir="rtl"] .mobile-menu .flex {
+    flex-direction: row-reverse;
+  }
+}
+
+/* Animation adjustments for RTL */
+[dir="rtl"] .slide-in-right {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+[dir="rtl"] .slide-in-left {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

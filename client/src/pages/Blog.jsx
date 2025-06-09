@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from '../api/axios';
 import {
   Typography,
@@ -19,6 +20,7 @@ import BlogCard from '../components/Blog/BlogCard';
 import BlogSidebar from '../components/Blog/BlogSidebar';
 
 const Blog = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'publishedAt');
@@ -103,14 +105,14 @@ const Blog = () => {
   };
 
   const categories = [
-    { name: 'Teknoloji', slug: 'technology' },
-    { name: 'Programlama', slug: 'programming' },
-    { name: 'Web Geliştirme', slug: 'web-development' },
-    { name: 'Mobil', slug: 'mobile' },
-    { name: 'Yapay Zeka', slug: 'ai' },
-    { name: 'Kariyer', slug: 'career' },
-    { name: 'Kişisel', slug: 'personal' },
-    { name: 'Eğitim', slug: 'tutorial' },
+    { name: t('home.categories.technology'), slug: 'technology' },
+    { name: t('home.categories.programming'), slug: 'programming' },
+    { name: t('home.categories.webDevelopment'), slug: 'web-development' },
+    { name: t('home.categories.mobile'), slug: 'mobile' },
+    { name: t('home.categories.ai'), slug: 'ai' },
+    { name: t('home.categories.career'), slug: 'career' },
+    { name: t('home.categories.personal'), slug: 'personal' },
+    { name: t('home.categories.tutorial'), slug: 'tutorial' },
   ];
 
   const currentCategory = searchParams.get('category');
@@ -128,10 +130,10 @@ const Blog = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <Typography variant="h1" color="blue-gray" className="mb-4">
-            Blog
+            {t("nav.blog")}
           </Typography>
           <Typography variant="lead" color="gray" className="max-w-3xl mx-auto">
-            Teknoloji, programlama ve kişisel deneyimlerim hakkında yazılar
+            {t("blog.description") || "Teknoloji, programlama ve kişisel deneyimlerim hakkında yazılar"}
           </Typography>
         </div>
 
@@ -143,14 +145,14 @@ const Blog = () => {
               <div className="flex gap-2">
                 <Input
                   type="text"
-                  placeholder="Blog yazılarında ara..."
+                  placeholder={t("blog.searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   icon={<MagnifyingGlassIcon className="h-5 w-5" />}
                   className="!border-t-blue-gray-200 focus:!border-t-gray-900"
                 />
                 <Button type="submit" size="sm" color="blue">
-                  Ara
+                  {t("blog.searchButton")}
                 </Button>
               </div>
             </form>
@@ -163,10 +165,10 @@ const Blog = () => {
                 onChange={handleSortChange}
                 className="min-w-[150px]"
               >
-                <Option value="publishedAt">En Yeni</Option>
-                <Option value="views">En Popüler</Option>
-                <Option value="likes">En Beğenilen</Option>
-                <Option value="title">Alfabetik</Option>
+                <Option value="publishedAt">{t("blog.sortNewest")}</Option>
+                <Option value="views">{t("blog.sortPopular")}</Option>
+                <Option value="likes">{t("blog.sortLiked")}</Option>
+                <Option value="title">{t("blog.sortAlphabetic")}</Option>
               </Select>
             </div>
 
@@ -178,7 +180,7 @@ const Blog = () => {
                 onClick={clearFilters}
                 className="whitespace-nowrap"
               >
-                Filtreleri Temizle
+                {t("blog.clearFilters")}
               </Button>
             )}
           </div>

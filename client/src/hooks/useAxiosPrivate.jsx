@@ -24,12 +24,26 @@ const useAxiosPrivate = () => {
       (response) => response,
       async (error) => {
         const prevRequest = error?.config;
-        if (error?.response?.status === 403 && !prevRequest?.sent) {
+
+        // Handle 401 and 403 errors for token refresh
+        if ((error?.response?.status === 401 || error?.response?.status === 403) && !prevRequest?.sent) {
           prevRequest.sent = true;
-          const newAccessToken = await refresh();
-          prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          return axiosPrivate(prevRequest);
+          try {
+            const newAccessToken = await refresh();
+            prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+            return axiosPrivate(prevRequest);
+          } catch (refreshError) {
+            console.error('Token refresh failed:', refreshError);
+            // Redirect to login or handle auth failure
+            return Promise.reject(error);
+          }
         }
+
+        // Log other errors for debugging
+        if (error?.response?.status >= 500) {
+          console.error('Server error:', error?.response?.data);
+        }
+
         return Promise.reject(error);
       }
     );

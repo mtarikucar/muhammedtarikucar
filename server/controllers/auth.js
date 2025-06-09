@@ -44,10 +44,12 @@ async function register(req, res, next) {
 
     // Create new user
     const user = new User({
-      name: username,
-      username,
+      name: username, // Map username to name field for MongoDB validation
       email: email.toLowerCase(),
       password: hashedPassword,
+      role: 'member', // Explicitly set default role
+      isActive: true, // Explicitly set default active status
+      gender: 'not selected' // Explicitly set default gender
     });
 
     // Save user to database

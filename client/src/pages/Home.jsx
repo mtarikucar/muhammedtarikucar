@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import axios from "../api/axios";
 import { Link } from "react-router-dom";
 import {
@@ -29,6 +30,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 function Home() {
+  const { t } = useTranslation();
+
   // Fetch featured posts
   const { data: featuredPosts, isLoading: featuredLoading } = useQuery(
     ["featuredPosts"],
@@ -63,14 +66,14 @@ function Home() {
   );
 
   const categories = [
-    { name: 'Teknoloji', icon: CpuChipIcon, slug: 'technology', color: 'blue' },
-    { name: 'Programlama', icon: CodeBracketIcon, slug: 'programming', color: 'green' },
-    { name: 'Web Geliştirme', icon: WrenchScrewdriverIcon, slug: 'web-development', color: 'purple' },
-    { name: 'Mobil', icon: DevicePhoneMobileIcon, slug: 'mobile', color: 'orange' },
-    { name: 'Yapay Zeka', icon: CpuChipIcon, slug: 'ai', color: 'red' },
-    { name: 'Kariyer', icon: BriefcaseIcon, slug: 'career', color: 'indigo' },
-    { name: 'Kişisel', icon: HeartIcon, slug: 'personal', color: 'pink' },
-    { name: 'Eğitim', icon: AcademicCapIcon, slug: 'tutorial', color: 'teal' },
+    { name: t('home.categories.technology'), icon: CpuChipIcon, slug: 'technology', color: 'blue' },
+    { name: t('home.categories.programming'), icon: CodeBracketIcon, slug: 'programming', color: 'green' },
+    { name: t('home.categories.webDevelopment'), icon: WrenchScrewdriverIcon, slug: 'web-development', color: 'purple' },
+    { name: t('home.categories.mobile'), icon: DevicePhoneMobileIcon, slug: 'mobile', color: 'orange' },
+    { name: t('home.categories.ai'), icon: CpuChipIcon, slug: 'ai', color: 'red' },
+    { name: t('home.categories.career'), icon: BriefcaseIcon, slug: 'career', color: 'indigo' },
+    { name: t('home.categories.personal'), icon: HeartIcon, slug: 'personal', color: 'pink' },
+    { name: t('home.categories.tutorial'), icon: AcademicCapIcon, slug: 'tutorial', color: 'teal' },
   ];
 
   const isLoading = featuredLoading || recentLoading;
@@ -100,28 +103,27 @@ function Home() {
             >
               <div className="flex justify-center mb-6">
                 <Avatar
-                  src="/profile-photo.jpg"
+                  src="/profile-photo.svg"
                   alt="Muhammed Tarik Ucar"
                   size="xxl"
                   className="border-4 border-white shadow-xl"
                 />
               </div>
               <Typography variant="h2" color="blue-gray" className="mb-4">
-                Merhaba, Ben Muhammed Tarik Ucar
+                {t('home.greeting')}
               </Typography>
               <Typography variant="lead" color="gray" className="max-w-3xl mx-auto mb-6">
-                Yazılım geliştirici, teknoloji tutkunu ve sürekli öğrenen biriyim.
-                Bu blogda teknoloji, programlama ve kişisel deneyimlerimi paylaşıyorum.
+                {t('home.description')}
               </Typography>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/blog">
                   <Button color="blue" variant="gradient" size="lg">
-                    Blog Yazılarını Keşfet
+                    {t('home.exploreBlogs')}
                   </Button>
                 </Link>
                 <Link to="/about">
                   <Button color="blue" variant="outlined" size="lg">
-                    Hakkımda
+                    {t('home.aboutMe')}
                   </Button>
                 </Link>
               </div>
@@ -135,11 +137,11 @@ function Home() {
             >
               <div className="flex justify-between items-center mb-8">
                 <Typography variant="h3" color="blue-gray">
-                  Son Yazılar
+                  {t('home.recentPosts')}
                 </Typography>
                 <Link to="/blog">
                   <Button variant="text" color="blue" className="flex items-center gap-2">
-                    Tümünü Gör
+                    {t('home.viewAll')}
                     <BookOpenIcon className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -166,7 +168,7 @@ function Home() {
             >
               <div className="flex justify-between items-center mb-8">
                 <Typography variant="h3" color="blue-gray">
-                  Kategoriler
+                  {t('home.categories')}
                 </Typography>
               </div>
 
@@ -220,24 +222,23 @@ function Home() {
         >
           <div className="max-w-3xl mx-auto text-center">
             <Typography variant="h3" className="mb-4">
-              Bültenime Abone Ol
+              {t('home.newsletter')}
             </Typography>
             <Typography variant="lead" className="mb-8 opacity-90">
-              Yeni yazılarımdan, projelerimden ve duyurularımdan haberdar olmak için
-              e-posta adresini bırak.
+              {t('home.newsletterDesc')}
             </Typography>
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
               <input
                 type="email"
-                placeholder="E-posta adresin"
+                placeholder={t('home.emailPlaceholder')}
                 className="flex-1 px-4 py-3 rounded-lg border-0 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
               />
               <Button color="white" variant="filled" size="lg" className="text-blue-600">
-                Abone Ol
+                {t('home.subscribe')}
               </Button>
             </div>
             <Typography variant="small" className="mt-4 opacity-75">
-              Spam yapmıyoruz. İstediğin zaman abonelikten çıkabilirsin.
+              {t('home.noSpam')}
             </Typography>
           </div>
         </motion.section>
