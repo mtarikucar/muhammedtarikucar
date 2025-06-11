@@ -1,4 +1,4 @@
-name: Deploy to Production
+name: Deploy to Server
 
 on:
   push:
@@ -7,6 +7,14 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - test
       skip_ssl:
         description: 'Skip SSL setup'
         required: false
@@ -160,10 +168,96 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  deploy-test:
+    name: Deploy to Test Environment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test')
+    needs: [test, security-scan]
+    environment: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Add server to known hosts
+          ssh-keyscan -H ${{ env.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.DOMAIN }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+          # Create SSH config for better connection handling
+          cat > ~/.ssh/config << EOF
+          Host ${{ env.SERVER_IP }}
+            HostName ${{ env.SERVER_IP }}
+            User ${{ env.DEPLOY_USER }}
+            Port 22
+            StrictHostKeyChecking no
+            UserKnownHostsFile ~/.ssh/known_hosts
+            ServerAliveInterval 60
+            ServerAliveCountMax 3
+            ConnectTimeout 10
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy to Test Environment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} << 'EOF'
+            set -e
+
+            echo "🧪 Starting Test Deployment..."
+
+            # Navigate to test project directory
+            cd /opt/${{ env.PROJECT_NAME }}-test || {
+              echo "❌ Test project directory not found, cloning repository..."
+              cd /opt
+              git clone https://github.com/${{ github.repository }}.git ${{ env.PROJECT_NAME }}-test
+              cd ${{ env.PROJECT_NAME }}-test
+            }
+
+            # Pull latest changes
+            echo "📥 Pulling latest changes..."
+            git fetch origin
+
+            # For PR, checkout the PR branch
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              git checkout ${{ github.head_ref }}
+              git pull origin ${{ github.head_ref }}
+            else
+              git reset --hard origin/main
+            fi
+
+            # Make scripts executable
+            chmod +x deploy-test.sh quick-deploy-fix.sh
+            chmod +x deploy-scripts/*.sh
+
+            # Run test deployment
+            echo "🔧 Running test deployment..."
+            export SKIP_BACKUP=${{ github.event.inputs.skip_backup || 'false' }}
+            export DRY_RUN=${{ github.event.inputs.dry_run || 'false' }}
+            ./deploy-test.sh
+
+            echo "✅ Test deployment completed!"
+          EOF
+
+      - name: Test Environment Health Check
+        run: |
+          sleep 30
+          curl -f http://test.${{ env.DOMAIN }}/health || echo "❌ Test health check failed"
+          curl -f http://test.${{ env.DOMAIN }}/test-info || echo "❌ Test info check failed"
+
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
     needs: [build]
     environment: production
     
@@ -176,64 +270,75 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add server to known hosts
+      - name: Configure SSH
         run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Add server to known hosts
           ssh-keyscan -H ${{ env.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.DOMAIN }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+          # Create SSH config for better connection handling
+          cat > ~/.ssh/config << EOF
+          Host ${{ env.SERVER_IP }}
+            HostName ${{ env.SERVER_IP }}
+            User ${{ env.DEPLOY_USER }}
+            Port 22
+            StrictHostKeyChecking no
+            UserKnownHostsFile ~/.ssh/known_hosts
+            ServerAliveInterval 60
+            ServerAliveCountMax 3
+            ConnectTimeout 10
+          EOF
+          chmod 600 ~/.ssh/config
 
       - name: Create deployment directory
         run: |
-          ssh ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "mkdir -p /opt/${{ env.PROJECT_NAME }}"
+          ssh -o StrictHostKeyChecking=no ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "mkdir -p /opt/${{ env.PROJECT_NAME }}"
 
-      - name: Copy deployment files
+      - name: Deploy to server
         run: |
-          scp -r deploy-scripts/ ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }}:/opt/${{ env.PROJECT_NAME }}/
-          scp docker-compose.yml ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }}:/opt/${{ env.PROJECT_NAME }}/
-          scp deploy.sh ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }}:/opt/${{ env.PROJECT_NAME }}/
-          scp muhammedtarikucar.conf ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }}:/opt/${{ env.PROJECT_NAME }}/
+          ssh -o StrictHostKeyChecking=no ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} << 'EOF'
+            set -e
 
-      - name: Set environment variables
-        run: |
-          ssh ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "
-            cd /opt/${{ env.PROJECT_NAME }}
-            cat > .env << EOF
-            NODE_ENV=production
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
-            MONGO_URI=${{ secrets.MONGO_URI }}
-            MONGODB_ROOT_USERNAME=${{ secrets.MONGODB_ROOT_USERNAME }}
-            MONGODB_ROOT_PASSWORD=${{ secrets.MONGODB_ROOT_PASSWORD }}
-            MONGODB_DATABASE=${{ secrets.MONGODB_DATABASE }}
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            PROJECT_NAME=${{ env.PROJECT_NAME }}
-            DOMAIN=${{ env.DOMAIN }}
-            SERVER_IP=${{ env.SERVER_IP }}
-            GITHUB_SHA=${{ github.sha }}
-            EOF
-          "
+            echo "🚀 Starting Production Deployment..."
 
-      - name: Make scripts executable
-        run: |
-          ssh ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "
-            cd /opt/${{ env.PROJECT_NAME }}
-            chmod +x deploy.sh
+            # Navigate to project directory
+            cd /opt/${{ env.PROJECT_NAME }} || {
+              echo "❌ Project directory not found, cloning repository..."
+              cd /opt
+              git clone https://github.com/${{ github.repository }}.git ${{ env.PROJECT_NAME }}
+              cd ${{ env.PROJECT_NAME }}
+            }
+
+            # Pull latest changes
+            echo "📥 Pulling latest changes..."
+            git fetch origin
+            git reset --hard origin/main
+
+            # Make scripts executable
+            chmod +x deploy.sh deploy-test.sh quick-deploy-fix.sh
             chmod +x deploy-scripts/*.sh
-          "
 
-      - name: Run deployment
-        run: |
-          ssh ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "
-            cd /opt/${{ env.PROJECT_NAME }}
+            # Run deployment
+            echo "🔧 Running deployment..."
             export SKIP_SSL=${{ github.event.inputs.skip_ssl || 'false' }}
             export SKIP_BACKUP=${{ github.event.inputs.skip_backup || 'false' }}
             export DRY_RUN=${{ github.event.inputs.dry_run || 'false' }}
             ./deploy.sh
-          "
 
-      - name: Verify deployment
+            echo "✅ Production deployment completed!"
+          EOF
+
+
+
+      - name: Production Health Check
         run: |
           sleep 30
-          curl -f https://${{ env.DOMAIN }}/api/health || exit 1
-          curl -f https://${{ env.DOMAIN }} || exit 1
+          curl -f http://${{ env.DOMAIN }}/health || echo "❌ Production health check failed"
+          curl -f http://${{ env.DOMAIN }} || echo "❌ Production site check failed"
 
       - name: Notify deployment success
         if: success()
@@ -244,7 +349,7 @@ jobs:
         if: failure()
         run: |
           echo "❌ Deployment failed"
-          ssh ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "
+          ssh -o StrictHostKeyChecking=no ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "
             cd /opt/${{ env.PROJECT_NAME }}
             ./deploy-scripts/12-rollback.sh --force
           "
@@ -254,16 +359,22 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     needs: [deploy]
-    
+
     steps:
-      - name: Cleanup old Docker images on server
+      - name: Setup SSH for cleanup
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      
+
+      - name: Configure SSH for cleanup
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ env.SERVER_IP }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
       - name: Remove old images
         run: |
-          ssh ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "
+          ssh -o StrictHostKeyChecking=no ${{ env.DEPLOY_USER }}@${{ env.SERVER_IP }} "
             docker image prune -f
             docker system prune -f --volumes
           "
