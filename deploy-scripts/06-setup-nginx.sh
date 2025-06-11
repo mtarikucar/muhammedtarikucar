@@ -254,34 +254,53 @@ EOF
         success "Nginx status sayfası konfigürasyonu oluşturuldu"
     fi
     
-    # Reload Nginx configuration
-    log "Nginx konfigürasyonu yeniden yükleniyor..."
-    
-    if [[ "$DRY_RUN" == "true" ]]; then
-        info "[DRY RUN] Nginx yeniden yüklenecek"
-    else
-        systemctl reload nginx
-        
-        if [ $? -eq 0 ]; then
-            success "Nginx konfigürasyonu yeniden yüklendi"
-        else
-            error "Nginx yeniden yüklenemedi"
-        fi
-    fi
-    
-    # Verify Nginx is running
+    # Ensure Nginx is running before reload
     log "Nginx servis durumu kontrol ediliyor..."
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         info "[DRY RUN] Nginx servis durumu kontrol edilecek"
     else
-        if service_running nginx; then
-            success "Nginx çalışıyor"
-        else
+        if ! service_running nginx; then
             warning "Nginx çalışmıyor, başlatılıyor..."
             systemctl start nginx
-            
-            if service_running nginx; then
+            sleep 2  # Wait for service to start
+
+            if ! service_running nginx; then
+                error "Nginx başlatılamadı"
+            fi
+            success "Nginx başlatıldı"
+        else
+            success "Nginx zaten çalışıyor"
+        fi
+    fi
+
+    # Reload Nginx configuration
+    log "Nginx konfigürasyonu yeniden yükleniyor..."
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        info "[DRY RUN] Nginx yeniden yüklenecek"
+    else
+        # Check if nginx is active before reload
+        if systemctl is-active --quiet nginx; then
+            systemctl reload nginx
+
+            if [ $? -eq 0 ]; then
+                success "Nginx konfigürasyonu yeniden yüklendi"
+            else
+                warning "Nginx reload başarısız, restart deneniyor..."
+                systemctl restart nginx
+
+                if [ $? -eq 0 ]; then
+                    success "Nginx restart edildi"
+                else
+                    error "Nginx restart başarısız"
+                fi
+            fi
+        else
+            warning "Nginx aktif değil, başlatılıyor..."
+            systemctl start nginx
+
+            if [ $? -eq 0 ]; then
                 success "Nginx başlatıldı"
             else
                 error "Nginx başlatılamadı"

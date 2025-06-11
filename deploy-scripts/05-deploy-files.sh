@@ -129,15 +129,23 @@ main() {
     
     success "Dosya sahiplikleri ve izinleri ayarlandı"
     
-    # Create production environment file
-    log "Production environment dosyası oluşturuluyor..."
-    
-    if [[ "$DRY_RUN" == "true" ]]; then
-        info "[DRY RUN] .env.production dosyası oluşturulacak"
+    # Create environment file based on deployment type
+    if [[ "$TEST_MODE" == "true" ]]; then
+        log "Test environment dosyası oluşturuluyor..."
+        local env_file=".env.test"
+        local env_name="test"
     else
-        cat > "$REMOTE_DIR/.env.production" << EOF
-# Production Environment Configuration
-NODE_ENV=production
+        log "Production environment dosyası oluşturuluyor..."
+        local env_file=".env.production"
+        local env_name="production"
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        info "[DRY RUN] $env_file dosyası oluşturulacak"
+    else
+        cat > "$REMOTE_DIR/$env_file" << EOF
+# $env_name Environment Configuration
+NODE_ENV=$env_name
 TZ=$TZ
 
 # Server Configuration
@@ -174,10 +182,10 @@ DEBUG_MODE=$DEBUG_MODE
 EOF
         
         # Set secure permissions for environment file
-        chmod 600 "$REMOTE_DIR/.env.production"
-        chown "$DEPLOY_USER:$DEPLOY_USER" "$REMOTE_DIR/.env.production"
-        
-        success "Production environment dosyası oluşturuldu"
+        chmod 600 "$REMOTE_DIR/$env_file"
+        chown "$DEPLOY_USER:$DEPLOY_USER" "$REMOTE_DIR/$env_file"
+
+        success "$env_name environment dosyası oluşturuldu"
     fi
     
     # Update Docker Compose file for production

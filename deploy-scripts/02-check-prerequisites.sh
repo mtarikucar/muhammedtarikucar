@@ -368,10 +368,17 @@ main() {
         warning "Nginx çalışmıyor, başlatılıyor..."
         if [[ "$DRY_RUN" != "true" ]]; then
             systemctl start nginx
+            sleep 2  # Wait for service to start
+
+            if service_running nginx; then
+                success "Nginx başarıyla başlatıldı"
+            else
+                error "Nginx başlatılamadı"
+            fi
         fi
+    else
+        success "Nginx zaten çalışıyor"
     fi
-    
-    success "Nginx çalışıyor"
     
     success "Adım 2: Ön koşul kontrolü tamamlandı"
     

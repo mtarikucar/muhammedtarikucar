@@ -22,7 +22,7 @@ export NGINX_SITES_AVAILABLE="/etc/nginx/sites-available"
 export NGINX_SITES_ENABLED="/etc/nginx/sites-enabled"
 
 # Service Configuration
-export FRONTEND_PORT="8082"
+export FRONTEND_PORT="3000"
 export BACKEND_PORT="5000"
 export MONGODB_PORT="27018"
 export REDIS_PORT="6380"
