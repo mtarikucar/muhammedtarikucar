@@ -1,22 +1,22 @@
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: blog_mongodb
+  # PostgreSQL Database
+  postgresql:
+    image: postgres:15
+    container_name: blog_postgresql
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
-      MONGO_INITDB_DATABASE: blog_db
+      POSTGRES_DB: blog_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
     ports:
-      - "27018:27017"
+      - "5433:5432"
     volumes:
-      - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - postgresql_data:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql:ro
     networks:
       - blog_network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/blog_db --quiet
+      test: ["CMD-SHELL", "pg_isready -U admin -d blog_db"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -48,8 +48,12 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      MONGODB_URI: mongodb://admin:password123@mongodb:27017/blog_db?authSource=admin
-      MONGO_URI: mongodb://admin:password123@mongodb:27017/blog_db?authSource=admin
+      DATABASE_URL: postgresql://admin:password123@postgresql:5432/blog_db
+      POSTGRES_HOST: postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: blog_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
       REDIS_URL: redis://redis:6379
       CLIENT_URL: https://muhammedtarikucar.com
       JWT_SECRET: your-super-secret-jwt-key-here-change-in-production
@@ -67,7 +71,7 @@ services:
       - ./server/uploads:/app/uploads
       - ./server/logs:/app/logs
     depends_on:
-      mongodb:
+      postgresql:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -118,7 +122,7 @@ services:
       - production
 
 volumes:
-  mongodb_data:
+  postgresql_data:
     driver: local
   redis_data:
     driver: local

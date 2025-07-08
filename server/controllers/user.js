@@ -4,7 +4,10 @@ async function getUserById(req, res, next) {
   try {
     const userId = req.params.id;
 
-    const user = await User.find({ _id: userId });
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
     res.json(user);
   } catch (er) {
     console.log(er);
@@ -13,10 +16,9 @@ async function getUserById(req, res, next) {
   }
 }
 
-async function getAllUser(req, res) {
+async function getAllUser(req, res, next) {
   try {
-    const users = await User.find();
-
+    const users = await User.findAll();
     res.json(users);
   } catch (er) {
     console.log(er);

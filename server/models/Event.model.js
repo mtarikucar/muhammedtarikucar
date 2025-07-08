@@ -1,20 +1,23 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const Schema = mongoose.Schema;
-
-const eventSchema = new Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-    },
-    content: {
-      type: String,
-    },
+const Event = sequelize.define('Event', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
-  {
-    timestamps: true,
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  content: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
-);
+}, {
+  tableName: 'events',
+  timestamps: true
+});
 
-module.exports = mongoose.model("Event", eventSchema);
+module.exports = Event;

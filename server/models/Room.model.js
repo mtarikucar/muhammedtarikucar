@@ -1,34 +1,40 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const RoomSchema = mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-    },
-    admin: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    image: {
-      type: String,
-      default: null,
-    },
-    isCommunity:{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Community",
-      default:null
-    },
-    members: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+const Room = sequelize.define('Room', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
-  {
-    timestamps: true,
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  adminId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  image: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null
+  },
+  communityId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'Communities',
+      key: 'id'
+    }
   }
-);
+}, {
+  tableName: 'rooms',
+  timestamps: true
+});
 
-module.exports = mongoose.model("Room", RoomSchema);
+module.exports = Room;

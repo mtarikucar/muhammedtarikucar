@@ -1,51 +1,59 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const UserSchema = new mongoose.Schema({
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
   email: {
-    type: String,
-    required: true,
+    type: DataTypes.STRING,
+    allowNull: false,
     unique: true,
-    lowercase: true
+    validate: {
+      isEmail: true
+    },
+    set(value) {
+      this.setDataValue('email', value.toLowerCase());
+    }
   },
   name: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   image: {
-    type: String,
-    default: null,
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null
   },
   gender: {
-    type: String,
-    enum: ['male', 'female', 'not selected'],
-    default: "not selected"
+    type: DataTypes.ENUM('male', 'female', 'not selected'),
+    defaultValue: 'not selected'
   },
   bio: {
-    type: String,
+    type: DataTypes.TEXT,
+    allowNull: true
   },
   isActive: {
-    type: Boolean,
-    default: true
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
   },
-  community: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Community'
+  communityId: {
+    type: DataTypes.UUID,
+    allowNull: true
   },
   password: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   role: {
-    type: String,
-    enum: ['member', 'admin'],
-    default: 'member'
-  },
-  likedPosts: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Post'
-  }]
-}, { timestamps: true });
+    type: DataTypes.ENUM('member', 'admin'),
+    defaultValue: 'member'
+  }
+}, {
+  tableName: 'users',
+  timestamps: true
+});
 
-
-
-module.exports = mongoose.model('User', UserSchema);;
+module.exports = User;

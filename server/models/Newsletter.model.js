@@ -1,216 +1,224 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-// Newsletter subscriber schema
-const subscriberSchema = new Schema({
+// Newsletter subscriber model
+const Subscriber = sequelize.define('Subscriber', {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     email: {
-        type: String,
-        required: true,
+        type: DataTypes.STRING,
+        allowNull: false,
         unique: true,
-        lowercase: true,
-        trim: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email'],
+        validate: {
+            isEmail: true
+        },
+        set(value) {
+            this.setDataValue('email', value.toLowerCase().trim());
+        }
     },
     name: {
-        type: String,
-        trim: true,
+        type: DataTypes.STRING,
+        allowNull: true,
+        set(value) {
+            if (value) this.setDataValue('name', value.trim());
+        }
     },
     status: {
-        type: String,
-        enum: ['active', 'unsubscribed', 'bounced'],
-        default: 'active',
+        type: DataTypes.ENUM('active', 'unsubscribed', 'bounced'),
+        defaultValue: 'active'
     },
     subscriptionDate: {
-        type: Date,
-        default: Date.now,
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     },
-    unsubscribeDate: Date,
-    unsubscribeReason: String,
+    unsubscribeDate: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    unsubscribeReason: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     preferences: {
-        frequency: {
-            type: String,
-            enum: ['daily', 'weekly', 'monthly'],
-            default: 'weekly',
-        },
-        categories: [{
-            type: String,
-            enum: ['technology', 'programming', 'web-development', 'mobile', 'ai', 'career', 'personal', 'tutorial'],
-        }],
+        type: DataTypes.JSONB,
+        defaultValue: {
+            frequency: 'weekly',
+            categories: []
+        }
     },
     source: {
-        type: String,
-        enum: ['website', 'blog-post', 'social-media', 'referral'],
-        default: 'website',
+        type: DataTypes.ENUM('website', 'blog-post', 'social-media', 'referral'),
+        defaultValue: 'website'
     },
-    confirmationToken: String,
+    confirmationToken: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     isConfirmed: {
-        type: Boolean,
-        default: false,
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
-    confirmedAt: Date,
-    lastEmailSent: Date,
+    confirmedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    lastEmailSent: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     emailsSent: {
-        type: Number,
-        default: 0,
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     emailsOpened: {
-        type: Number,
-        default: 0,
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     linksClicked: {
-        type: Number,
-        default: 0,
-    },
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    }
 }, {
+    tableName: 'newsletter_subscribers',
     timestamps: true,
+    indexes: [
+        { fields: ['email'], unique: true },
+        { fields: ['status'] },
+        { fields: ['subscriptionDate'] }
+    ]
 });
 
-// Newsletter campaign schema
-const campaignSchema = new Schema({
+// Newsletter campaign model
+const Campaign = sequelize.define('Campaign', {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     title: {
-        type: String,
-        required: true,
-        trim: true,
+        type: DataTypes.STRING,
+        allowNull: false,
+        set(value) {
+            this.setDataValue('title', value.trim());
+        }
     },
     subject: {
-        type: String,
-        required: true,
-        trim: true,
+        type: DataTypes.STRING,
+        allowNull: false,
+        set(value) {
+            this.setDataValue('subject', value.trim());
+        }
     },
     content: {
-        type: String,
-        required: true,
+        type: DataTypes.TEXT,
+        allowNull: false
     },
-    htmlContent: String,
+    htmlContent: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     status: {
-        type: String,
-        enum: ['draft', 'scheduled', 'sending', 'sent', 'cancelled'],
-        default: 'draft',
+        type: DataTypes.ENUM('draft', 'scheduled', 'sending', 'sent', 'cancelled'),
+        defaultValue: 'draft'
     },
-    scheduledAt: Date,
-    sentAt: Date,
+    scheduledAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    sentAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     recipients: {
-        total: { type: Number, default: 0 },
-        sent: { type: Number, default: 0 },
-        delivered: { type: Number, default: 0 },
-        opened: { type: Number, default: 0 },
-        clicked: { type: Number, default: 0 },
-        bounced: { type: Number, default: 0 },
-        unsubscribed: { type: Number, default: 0 },
+        type: DataTypes.JSONB,
+        defaultValue: {
+            total: 0,
+            sent: 0,
+            delivered: 0,
+            opened: 0,
+            clicked: 0,
+            bounced: 0,
+            unsubscribed: 0
+        }
     },
     targetAudience: {
-        categories: [String],
-        status: [String],
-        subscriptionDateRange: {
-            start: Date,
-            end: Date,
-        },
+        type: DataTypes.JSONB,
+        defaultValue: {}
     },
     template: {
-        type: String,
-        enum: ['basic', 'newsletter', 'announcement', 'custom'],
-        default: 'basic',
+        type: DataTypes.ENUM('basic', 'newsletter', 'announcement', 'custom'),
+        defaultValue: 'basic'
     },
-    author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-    },
-}, {
-    timestamps: true,
-});
-
-// Email tracking schema
-const emailTrackingSchema = new Schema({
-    campaignId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Campaign',
-        required: true,
-    },
-    subscriberId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subscriber',
-        required: true,
-    },
-    email: {
-        type: String,
-        required: true,
-    },
-    events: [{
-        type: {
-            type: String,
-            enum: ['sent', 'delivered', 'opened', 'clicked', 'bounced', 'unsubscribed'],
-            required: true,
-        },
-        timestamp: {
-            type: Date,
-            default: Date.now,
-        },
-        data: {
-            link: String,
-            userAgent: String,
-            ip: String,
-            reason: String,
-        },
-    }],
-}, {
-    timestamps: true,
-});
-
-// Add indexes
-subscriberSchema.index({ email: 1 });
-subscriberSchema.index({ status: 1 });
-subscriberSchema.index({ subscriptionDate: -1 });
-subscriberSchema.index({ 'preferences.categories': 1 });
-
-campaignSchema.index({ status: 1 });
-campaignSchema.index({ scheduledAt: 1 });
-campaignSchema.index({ sentAt: -1 });
-
-emailTrackingSchema.index({ campaignId: 1, subscriberId: 1 });
-emailTrackingSchema.index({ 'events.type': 1, 'events.timestamp': -1 });
-
-// Pre-save middleware
-subscriberSchema.pre('save', function(next) {
-    if (this.isModified('status') && this.status === 'unsubscribed' && !this.unsubscribeDate) {
-        this.unsubscribeDate = new Date();
+    authorId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+            model: 'Users',
+            key: 'id'
+        }
     }
-    next();
+}, {
+    tableName: 'newsletter_campaigns',
+    timestamps: true,
+    indexes: [
+        { fields: ['status'] },
+        { fields: ['scheduledAt'] },
+        { fields: ['sentAt'] }
+    ]
 });
 
-// Methods
-subscriberSchema.methods.unsubscribe = function(reason) {
+// Hooks
+Subscriber.beforeUpdate(async (subscriber, options) => {
+    if (subscriber.changed('status') && subscriber.status === 'unsubscribed' && !subscriber.unsubscribeDate) {
+        subscriber.unsubscribeDate = new Date();
+    }
+});
+
+// Instance methods
+Subscriber.prototype.unsubscribe = async function(reason) {
     this.status = 'unsubscribed';
     this.unsubscribeDate = new Date();
     this.unsubscribeReason = reason;
-    return this.save();
+    return await this.save();
 };
 
-subscriberSchema.methods.confirm = function() {
+Subscriber.prototype.confirm = async function() {
     this.isConfirmed = true;
     this.confirmedAt = new Date();
-    this.confirmationToken = undefined;
-    return this.save();
+    this.confirmationToken = null;
+    return await this.save();
 };
 
-// Static methods
-subscriberSchema.statics.getActiveSubscribers = function(categories = []) {
-    const query = { status: 'active', isConfirmed: true };
+// Class methods
+Subscriber.getActiveSubscribers = async function(categories = []) {
+    const { Op } = require('sequelize');
+    const whereClause = { status: 'active', isConfirmed: true };
+
     if (categories.length > 0) {
-        query['preferences.categories'] = { $in: categories };
+        whereClause['preferences.categories'] = { [Op.overlap]: categories };
     }
-    return this.find(query);
+
+    return await this.findAll({ where: whereClause });
 };
 
-campaignSchema.statics.getRecentCampaigns = function(limit = 10) {
-    return this.find({ status: 'sent' })
-        .sort({ sentAt: -1 })
-        .limit(limit)
-        .populate('author', 'name email');
+Campaign.getRecentCampaigns = async function(limit = 10) {
+    const User = require('./User.model');
+    return await this.findAll({
+        where: { status: 'sent' },
+        include: [{
+            model: User,
+            as: 'author',
+            attributes: ['name', 'email']
+        }],
+        order: [['sentAt', 'DESC']],
+        limit
+    });
 };
 
 module.exports = {
-    Subscriber: mongoose.model('Subscriber', subscriberSchema),
-    Campaign: mongoose.model('Campaign', campaignSchema),
-    EmailTracking: mongoose.model('EmailTracking', emailTrackingSchema),
+    Subscriber,
+    Campaign
 };

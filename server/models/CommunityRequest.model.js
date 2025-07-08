@@ -1,24 +1,40 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const communityRequestSchema = new Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+const CommunityRequest = sequelize.define('CommunityRequest', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
-  community: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Community',
-    required: true
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  communityId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Communities',
+      key: 'id'
+    }
   },
   status: {
-    type: String,
-    enum: ['pending', 'accepted', 'rejected'],
-    default: 'pending'
+    type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
+    defaultValue: 'pending'
   }
 }, {
-  timestamps: true
+  tableName: 'community_requests',
+  timestamps: true,
+  indexes: [
+    { fields: ['userId'] },
+    { fields: ['communityId'] },
+    { fields: ['status'] }
+  ]
 });
 
-module.exports = mongoose.model('CommunityRequest', communityRequestSchema);
+module.exports = CommunityRequest;

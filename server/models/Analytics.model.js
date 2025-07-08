@@ -1,180 +1,156 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-// Daily analytics schema
-const dailyAnalyticsSchema = new Schema({
+// Daily analytics model
+const DailyAnalytics = sequelize.define('DailyAnalytics', {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     date: {
-        type: Date,
-        required: true,
-        unique: true,
+        type: DataTypes.DATEONLY,
+        allowNull: false,
+        unique: true
     },
     pageViews: {
-        type: Number,
-        default: 0,
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     uniqueVisitors: {
-        type: Number,
-        default: 0,
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     sessions: {
-        type: Number,
-        default: 0,
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     bounceRate: {
-        type: Number,
-        default: 0,
+        type: DataTypes.FLOAT,
+        defaultValue: 0
     },
     avgSessionDuration: {
-        type: Number,
-        default: 0,
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
-    topPages: [{
-        path: String,
-        views: Number,
-    }],
-    topReferrers: [{
-        source: String,
-        visits: Number,
-    }],
+    topPages: {
+        type: DataTypes.JSONB,
+        defaultValue: []
+    },
+    topReferrers: {
+        type: DataTypes.JSONB,
+        defaultValue: []
+    },
     deviceTypes: {
-        desktop: { type: Number, default: 0 },
-        mobile: { type: Number, default: 0 },
-        tablet: { type: Number, default: 0 },
+        type: DataTypes.JSONB,
+        defaultValue: { desktop: 0, mobile: 0, tablet: 0 }
     },
-    browsers: [{
-        name: String,
-        count: Number,
-    }],
-    countries: [{
-        name: String,
-        count: Number,
-    }],
+    browsers: {
+        type: DataTypes.JSONB,
+        defaultValue: []
+    },
+    countries: {
+        type: DataTypes.JSONB,
+        defaultValue: []
+    }
 }, {
-    timestamps: true,
+    tableName: 'daily_analytics',
+    timestamps: true
 });
 
-// Visitor session schema
-const visitorSessionSchema = new Schema({
+// Visitor session model
+const VisitorSession = sequelize.define('VisitorSession', {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     sessionId: {
-        type: String,
-        required: true,
-        unique: true,
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
     },
     ip: {
-        type: String,
-        required: true,
+        type: DataTypes.STRING,
+        allowNull: false
     },
-    userAgent: String,
-    country: String,
-    city: String,
-    referrer: String,
-    entryPage: String,
-    exitPage: String,
-    pageViews: [{
-        path: String,
-        timestamp: Date,
-        timeSpent: Number, // in seconds
-    }],
+    userAgent: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    country: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    city: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    referrer: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    entryPage: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    exitPage: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    pageViews: {
+        type: DataTypes.JSONB,
+        defaultValue: []
+    },
     startTime: {
-        type: Date,
-        default: Date.now,
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     },
-    endTime: Date,
-    duration: Number, // in seconds
+    endTime: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    duration: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
     isBot: {
-        type: Boolean,
-        default: false,
-    },
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    }
 }, {
+    tableName: 'visitor_sessions',
     timestamps: true,
+    indexes: [
+        { fields: ['sessionId'], unique: true },
+        { fields: ['ip', 'startTime'] },
+        { fields: ['startTime'] }
+    ]
 });
 
-// Real-time analytics schema
-const realtimeAnalyticsSchema = new Schema({
-    timestamp: {
-        type: Date,
-        default: Date.now,
-        expires: 3600, // Expire after 1 hour
-    },
-    activeUsers: {
-        type: Number,
-        default: 0,
-    },
-    currentPageViews: [{
-        path: String,
-        count: Number,
-    }],
-    recentEvents: [{
-        type: String,
-        path: String,
-        timestamp: Date,
-        country: String,
-    }],
-});
-
-// Page performance schema
-const pagePerformanceSchema = new Schema({
-    path: {
-        type: String,
-        required: true,
-    },
-    date: {
-        type: Date,
-        required: true,
-    },
-    views: {
-        type: Number,
-        default: 0,
-    },
-    uniqueViews: {
-        type: Number,
-        default: 0,
-    },
-    avgTimeOnPage: {
-        type: Number,
-        default: 0,
-    },
-    bounceRate: {
-        type: Number,
-        default: 0,
-    },
-    exitRate: {
-        type: Number,
-        default: 0,
-    },
-}, {
-    timestamps: true,
-});
-
-// Add indexes
-dailyAnalyticsSchema.index({ date: -1 });
-visitorSessionSchema.index({ sessionId: 1 });
-visitorSessionSchema.index({ ip: 1, startTime: -1 });
-visitorSessionSchema.index({ startTime: -1 });
-realtimeAnalyticsSchema.index({ timestamp: -1 });
-pagePerformanceSchema.index({ path: 1, date: -1 });
-
-// Static methods for analytics
-dailyAnalyticsSchema.statics.getDateRange = function(startDate, endDate) {
-    return this.find({
-        date: {
-            $gte: startDate,
-            $lte: endDate,
-        }
-    }).sort({ date: -1 });
+// Basic class methods
+DailyAnalytics.getDateRange = async function(startDate, endDate) {
+    return await this.findAll({
+        where: {
+            date: {
+                [sequelize.Sequelize.Op.between]: [startDate, endDate]
+            }
+        },
+        order: [['date', 'DESC']]
+    });
 };
 
-visitorSessionSchema.statics.getActiveUsers = function() {
+VisitorSession.getActiveUsers = async function() {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    return this.countDocuments({
-        startTime: { $gte: oneHourAgo },
-        endTime: { $exists: false },
+    return await this.count({
+        where: {
+            startTime: { [sequelize.Sequelize.Op.gte]: oneHourAgo },
+            endTime: null
+        }
     });
 };
 
 module.exports = {
-    DailyAnalytics: mongoose.model('DailyAnalytics', dailyAnalyticsSchema),
-    VisitorSession: mongoose.model('VisitorSession', visitorSessionSchema),
-    RealtimeAnalytics: mongoose.model('RealtimeAnalytics', realtimeAnalyticsSchema),
-    PagePerformance: mongoose.model('PagePerformance', pagePerformanceSchema),
+    DailyAnalytics,
+    VisitorSession
 };

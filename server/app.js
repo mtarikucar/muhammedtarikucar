@@ -3,7 +3,6 @@
  */
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const http = require('http');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -11,6 +10,9 @@ const path = require('path');
 
 // Import configuration
 const config = require('./config');
+
+// Import models to initialize associations
+require('./models');
 
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
@@ -73,13 +75,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // Database connection
-mongoose
-  .connect(config.db.uri, config.db.options)
-  .then(() => logger.info('Connected to database'))
-  .catch((err) => {
-    logger.error('Database connection error:', err);
+const { testConnection, syncDatabase } = require('./config/database');
+
+// Initialize database
+const initializeDatabase = async () => {
+  try {
+    await testConnection();
+    await syncDatabase(false); // Set to true to force recreate tables
+    logger.info('Database initialized successfully');
+  } catch (error) {
+    logger.error('Database initialization error:', error);
     process.exit(1);
-  });
+  }
+};
+
+initializeDatabase();
 
 // Import routes
 const postRoutes = require('./routers/post');

@@ -1,44 +1,61 @@
-const { default: mongoose } = require("mongoose");
-const Mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const commentSchema = new Mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    postId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Post",
-      required: true,
-    },
-    content: {
-      type: String,
-      required: true,
-    },
-    parentComment: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Comment",
-      default: null
-    },
-    isApproved: {
-      type: Boolean,
-      default: false
-    },
-    likes: {
-      type: Number,
-      default: 0
-    },
-    likedBy: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
-    }]
+const Comment = sequelize.define('Comment', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
-  {
-    timestamps: true,
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  postId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Posts',
+      key: 'id'
+    }
+  },
+  content: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  parentCommentId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'Comments',
+      key: 'id'
+    }
+  },
+  isApproved: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  likes: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  likedBy: {
+    type: DataTypes.ARRAY(DataTypes.UUID),
+    defaultValue: []
   }
-);
+}, {
+  tableName: 'comments',
+  timestamps: true,
+  indexes: [
+    { fields: ['userId'] },
+    { fields: ['postId'] },
+    { fields: ['parentCommentId'] },
+    { fields: ['isApproved'] }
+  ]
+});
 
-
-module.exports = mongoose.model('Comments', commentSchema);
+module.exports = Comment;

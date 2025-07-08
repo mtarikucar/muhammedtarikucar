@@ -14,7 +14,7 @@ const validateEnv = (requiredEnvs) => {
 };
 
 // Required environment variables
-const requiredEnvs = ['MONGO_URI', 'JWT_SECRET', 'REFRESH_TOKEN_SECRET'];
+const requiredEnvs = ['DATABASE_URL', 'JWT_SECRET', 'REFRESH_TOKEN_SECRET'];
 
 // Validate required environment variables
 validateEnv(requiredEnvs);
@@ -30,11 +30,20 @@ const config = {
   
   // Database configuration
   db: {
-    uri: process.env.MONGO_URI,
-    options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
+    url: process.env.DATABASE_URL,
+    host: process.env.POSTGRES_HOST || 'localhost',
+    port: process.env.POSTGRES_PORT || 5432,
+    database: process.env.POSTGRES_DB || 'blog_db',
+    username: process.env.POSTGRES_USER || 'admin',
+    password: process.env.POSTGRES_PASSWORD || 'password123',
+    dialect: 'postgres',
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    }
   },
   
   // JWT configuration

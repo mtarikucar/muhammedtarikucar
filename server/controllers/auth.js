@@ -42,20 +42,17 @@ async function register(req, res, next) {
     const hashedPassword = await hashPassword(password);
 
     // Create new user
-    const user = new User({
-      name: username, // Map username to name field for MongoDB validation
+    const user = await User.create({
+      name: username,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: 'member', // Explicitly set default role
-      isActive: true, // Explicitly set default active status
-      gender: 'not selected' // Explicitly set default gender
+      role: 'member',
+      isActive: true,
+      gender: 'not selected'
     });
 
-    // Save user to database
-    await user.save();
-
     // Create a sanitized user object without password
-    const userResponse = user.toObject();
+    const userResponse = user.toJSON();
     delete userResponse.password;
 
     // Return success response
@@ -87,8 +84,10 @@ async function login(req, res, next) {
 
     // Find user by email
     const user = await User.findOne({
-      email: email.toLowerCase(),
-      isActive: true,
+      where: {
+        email: email.toLowerCase(),
+        isActive: true
+      }
     });
 
     // Check if user exists
@@ -107,7 +106,7 @@ async function login(req, res, next) {
     const refreshToken = generateRefreshToken(user);
 
     // Create a sanitized user object without password
-    const userResponse = user.toObject();
+    const userResponse = user.toJSON();
     delete userResponse.password;
 
     // Return success response

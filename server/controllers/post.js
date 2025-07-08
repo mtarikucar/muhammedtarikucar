@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
 const Post = require("../models/Post.model");
 const User = require("../models/User.model");
+const Category = require("../models/Category.model");
 const { VisitorSession } = require("../models/Analytics.model");
 const { AppError } = require('../middlewares/errorHandler');
 const { logger } = require('../utils/logger');
@@ -8,8 +8,11 @@ const { logger } = require('../utils/logger');
 // Helper function to get admin user IDs
 async function getAdminUserIds() {
   try {
-    const adminUsers = await User.find({ role: 'admin' }, '_id');
-    return adminUsers.map(user => user._id);
+    const adminUsers = await User.findAll({
+      where: { role: 'admin' },
+      attributes: ['id']
+    });
+    return adminUsers.map(user => user.id);
   } catch (error) {
     logger.error('Error fetching admin user IDs:', error);
     return [];
@@ -38,31 +41,35 @@ async function createPost(req, res, next) {
     }
 
     // Create new post
-    const post = new Post({
+    const post = await Post.create({
       title,
       content,
       excerpt,
-      category,
+      categoryId: category,
       tags: tags || [],
       featuredImage,
       images: images || [],
-      author: req.user.id,
+      authorId: req.user.id,
       status: status || 'draft',
       featured: featured || false,
-      seo: seo || {},
+      seo: seo || {}
     });
 
-    await post.save();
-
-    // Populate author information
-    await post.populate('author', 'name email image');
+    // Get post with author information
+    const postWithAuthor = await Post.findByPk(post.id, {
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['name', 'email', 'image']
+      }]
+    });
 
     logger.info(`New blog post created: ${post.title} by ${req.user.name}`);
 
     res.status(201).json({
       status: 'success',
       message: 'Blog post created successfully',
-      data: { post }
+      data: { post: postWithAuthor }
     });
   } catch (error) {
     logger.error('Create post error:', error);
@@ -83,61 +90,67 @@ async function getPosts(req, res, next) {
       sort = 'publishedAt'
     } = req.query;
 
-    // Build query
-    const query = { status: 'published' };
+    // Build where clause
+    const { Op } = require('sequelize');
+    const whereClause = { status: 'published' };
 
     if (category) {
-      query.category = category;
+      whereClause.categoryId = category;
     }
 
     if (tag) {
-      query.tags = { $in: [tag] };
+      whereClause.tags = { [Op.contains]: [tag] };
     }
 
     if (featured === 'true') {
-      query.featured = true;
+      whereClause.featured = true;
     }
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { excerpt: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
+      whereClause[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { excerpt: { [Op.iLike]: `%${search}%` } },
+        { content: { [Op.iLike]: `%${search}%` } },
+        { tags: { [Op.overlap]: [search] } }
       ];
     }
 
     // Sort options
-    let sortOption = {};
+    let orderClause = [];
     switch (sort) {
       case 'views':
-        sortOption = { views: -1 };
+        orderClause = [['views', 'DESC']];
         break;
       case 'likes':
-        sortOption = { likes: -1 };
+        orderClause = [['likes', 'DESC']];
         break;
       case 'title':
-        sortOption = { title: 1 };
+        orderClause = [['title', 'ASC']];
         break;
       default:
-        sortOption = { publishedAt: -1 };
+        orderClause = [['publishedAt', 'DESC']];
     }
 
     // Add admin filter to query for better performance
-    const adminQuery = {
-      ...query,
-      author: { $in: await getAdminUserIds() }
+    const adminUserIds = await getAdminUserIds();
+    const finalWhereClause = {
+      ...whereClause,
+      authorId: { [Op.in]: adminUserIds }
     };
 
     // Execute query with pagination
-    const posts = await Post.find(adminQuery)
-      .populate('author', 'name image bio role')
-      .sort(sortOption)
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .select('-content'); // Exclude full content for list view
-
-    const total = await Post.countDocuments(adminQuery);
+    const { count, rows: posts } = await Post.findAndCountAll({
+      where: finalWhereClause,
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['name', 'image', 'bio', 'role']
+      }],
+      order: orderClause,
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit),
+      attributes: { exclude: ['content'] } // Exclude full content for list view
+    });
 
     res.json({
       status: 'success',
@@ -145,9 +158,9 @@ async function getPosts(req, res, next) {
         posts,
         pagination: {
           currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalPosts: total,
-          hasNext: page < Math.ceil(total / limit),
+          totalPages: Math.ceil(count / limit),
+          totalPosts: count,
+          hasNext: page < Math.ceil(count / limit),
           hasPrev: page > 1
         }
       }
