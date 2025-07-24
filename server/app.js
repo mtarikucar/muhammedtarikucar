@@ -20,6 +20,8 @@ const { requestLogger } = require('./utils/logger');
 const { logger } = require('./utils/logger');
 const { setupSwagger } = require('./utils/swagger');
 const socketHandler = require('./utils/socketHandler');
+const { preventParameterPollution, sanitizeInput, checkSecurityHeaders } = require('./middlewares/security');
+const { performanceMonitor, memoryMonitor, databaseMonitor, collectMetrics, metrics } = require('./utils/monitoring');
 
 // Create Express app
 const app = express();
@@ -52,8 +54,30 @@ const corsOptionsDelegate = function (req, callback) {
 };
 
 // Security middleware
-app.use(helmet()); // Set security HTTP headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:", "wss:"],
+      fontSrc: ["'self'", "https:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+})); // Set security HTTP headers
 app.use(cors(corsOptionsDelegate)); // Enable CORS
+app.use(checkSecurityHeaders); // Additional security headers
+app.use(preventParameterPollution); // Prevent parameter pollution
+app.use(sanitizeInput); // Sanitize input data
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -71,8 +95,10 @@ app.use(apiLimiter);
 app.use(express.json({ limit: '10kb' })); // Body limit is 10kb
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging
+// Request logging and monitoring
 app.use(requestLogger);
+app.use(performanceMonitor);
+app.use(collectMetrics);
 
 // Database connection
 const { testConnection, syncDatabase } = require('./config/database');
@@ -89,7 +115,11 @@ const initializeDatabase = async () => {
   }
 };
 
-initializeDatabase();
+initializeDatabase().then(() => {
+  // Start monitoring
+  memoryMonitor();
+  databaseMonitor(require('./config/database').sequelize);
+});
 
 // Import routes
 const postRoutes = require('./routers/post');
@@ -118,6 +148,14 @@ app.get('/api/health', (req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development'
   });
+});
+
+// Metrics endpoint (protected in production)
+app.get('/api/metrics', (req, res) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-metrics-key'] !== process.env.METRICS_KEY) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  res.json(metrics.getMetrics());
 });
 
 // Serve static files from uploads directory

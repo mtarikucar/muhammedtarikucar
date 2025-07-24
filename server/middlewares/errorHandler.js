@@ -50,7 +50,8 @@ class AppError extends Error {
 
 // Error handler middleware
 const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err);
+  const { logger } = require('../utils/logger');
+  logger.error('Error:', err);
 
   // Default error values
   let statusCode = err.statusCode || 500;
