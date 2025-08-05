@@ -22,7 +22,7 @@ const useFileUpload = () => {
     formData.append('file', file);
 
     try {
-      const response = await axiosPrivate.post(`/api${endpoint}`, formData, {
+      const response = await axiosPrivate.post(`${endpoint}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

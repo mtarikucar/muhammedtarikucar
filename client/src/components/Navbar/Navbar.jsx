@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Navbar,
-  MobileNav,
   Typography,
   Button,
   IconButton,
@@ -10,6 +9,7 @@ import {
   MenuList,
   MenuItem,
   Avatar,
+  Collapse,
 } from "@material-tailwind/react";
 import {
   UserCircleIcon,
@@ -58,10 +58,6 @@ export default function MainNavbar() {
   // Authenticated navigation links
   const authNavListItems = [
     ...navListItems,
-    {
-      label: "Chat",
-      path: "/chat",
-    },
   ];
 
   // Profile menu items
@@ -76,12 +72,8 @@ export default function MainNavbar() {
         label: t("nav.settings"),
         icon: Cog6ToothIcon,
         path: "/settings",
-      },
-      {
-        label: t("nav.writePost"),
-        icon: InboxArrowDownIcon,
-        path: "/upload",
-      },
+      }
+    
     ];
 
     // Add admin dashboard for admin users
@@ -262,7 +254,7 @@ export default function MainNavbar() {
           <SearchBar />
         </div>
       )}
-      <MobileNav open={openNav}>
+      <Collapse open={openNav}>
         <div className="container mx-auto">
           <NavList />
           <div className="mb-4">
@@ -297,7 +289,7 @@ export default function MainNavbar() {
             </div>
           )}
         </div>
-      </MobileNav>
+      </Collapse>
     </Navbar>
   );
 }

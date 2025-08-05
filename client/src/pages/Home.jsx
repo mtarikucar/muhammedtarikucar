@@ -65,18 +65,34 @@ function Home() {
     }
   );
 
-  const categories = [
-    { name: t('home.categories.technology'), icon: CpuChipIcon, slug: 'technology', color: 'blue' },
-    { name: t('home.categories.programming'), icon: CodeBracketIcon, slug: 'programming', color: 'green' },
-    { name: t('home.categories.webDevelopment'), icon: WrenchScrewdriverIcon, slug: 'web-development', color: 'purple' },
-    { name: t('home.categories.mobile'), icon: DevicePhoneMobileIcon, slug: 'mobile', color: 'orange' },
-    { name: t('home.categories.ai'), icon: CpuChipIcon, slug: 'ai', color: 'red' },
-    { name: t('home.categories.career'), icon: BriefcaseIcon, slug: 'career', color: 'indigo' },
-    { name: t('home.categories.personal'), icon: HeartIcon, slug: 'personal', color: 'pink' },
-    { name: t('home.categories.tutorial'), icon: AcademicCapIcon, slug: 'tutorial', color: 'teal' },
-  ];
+  // Fetch categories
+  const { data: categories, isLoading: categoriesLoading } = useQuery(
+    ["categories"],
+    async () => {
+      const response = await axios.get("/categories");
+      if (!response.data || !response.data.data || !response.data.data.categories) {
+        throw new Error("Invalid categories response structure");
+      }
+      return response.data.data.categories;
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  const isLoading = featuredLoading || recentLoading;
+  // Map icons and colors to categories
+  const categoryIcons = {
+    technology: { icon: CpuChipIcon, color: 'blue' },
+    programming: { icon: CodeBracketIcon, color: 'green' },
+    'web-development': { icon: WrenchScrewdriverIcon, color: 'purple' },
+    mobile: { icon: DevicePhoneMobileIcon, color: 'orange' },
+    ai: { icon: CpuChipIcon, color: 'red' },
+    career: { icon: BriefcaseIcon, color: 'indigo' },
+    personal: { icon: HeartIcon, color: 'pink' },
+    tutorial: { icon: AcademicCapIcon, color: 'teal' },
+  };
+
+  const isLoading = featuredLoading || recentLoading || categoriesLoading;
 
   return (
     <motion.div
@@ -173,24 +189,25 @@ function Home() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {categories.map((category, index) => {
-                  const IconComponent = category.icon;
+                {categories && Array.isArray(categories) && categories.slice(0, 8).map((category, index) => {
+                  const categoryConfig = categoryIcons[category.id] || { icon: BookOpenIcon, color: 'gray' };
+                  const IconComponent = categoryConfig.icon;
                   return (
                     <motion.div
-                      key={category.slug}
+                      key={category.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                       whileHover={{ scale: 1.05 }}
                     >
-                      <Link to={`/blog/category/${category.slug}`}>
+                      <Link to={`/blog?category=${category.slug || category.id}`}>
                         <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
                           <CardBody className="text-center p-6">
-                            <div className={`w-12 h-12 mx-auto mb-4 rounded-full bg-${category.color}-100 flex items-center justify-center`}>
-                              <IconComponent className={`h-6 w-6 text-${category.color}-600`} />
+                            <div className={`w-12 h-12 mx-auto mb-4 rounded-full bg-${categoryConfig.color}-100 flex items-center justify-center`}>
+                              <IconComponent className={`h-6 w-6 text-${categoryConfig.color}-600`} />
                             </div>
                             <Typography variant="h6" color="blue-gray">
-                              {category.name}
+                              {category.name || category.title}
                             </Typography>
                           </CardBody>
                         </Card>
@@ -207,7 +224,7 @@ function Home() {
             <BlogSidebar
               popularPosts={popularPosts || []}
               recentPosts={recentPosts || []}
-              categories={categories.map(cat => ({ _id: cat.slug, count: 0 }))}
+              categories={categories || []}
               tags={[]}
             />
           </div>

@@ -70,11 +70,13 @@ const BlogCard = ({ post, featured = false }) => {
               </div>
             )}
             <div className="absolute top-4 right-4">
-              <Chip
-                value={post.category ? post.category.replace('-', ' ') : 'Genel'}
-                color={getCategoryColor(post.category)}
-                className="capitalize"
-              />
+              {post.category && post.category.name && (
+                <Chip
+                  value={post.category.name}
+                  color={getCategoryColor(post.category.id)}
+                  className="capitalize"
+                />
+              )}
             </div>
           </CardHeader>
         )}
@@ -86,7 +88,7 @@ const BlogCard = ({ post, featured = false }) => {
               color="blue-gray" 
               className="mb-2 line-clamp-2 hover:text-blue-600 transition-colors"
             >
-              <Link to={`/blog/${post.slug}`}>
+              <Link to={`/blog/${post.id}`}>
                 {post.title}
               </Link>
             </Typography>
@@ -171,7 +173,7 @@ const BlogCard = ({ post, featured = false }) => {
             </div>
           </div>
 
-          <Link to={`/blog/${post.slug}`}>
+          <Link to={`/blog/${post.id}`}>
             <Button 
               color="blue" 
               variant="gradient" 

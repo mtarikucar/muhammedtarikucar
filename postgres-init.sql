@@ -8,8 +8,8 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 -- Create database if it doesn't exist (this is usually handled by POSTGRES_DB env var)
 -- SELECT 'CREATE DATABASE blog_db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'blog_db')\gexec
 
--- Connect to the blog database
-\c blog_db;
+-- Note: Database and user creation is handled by Docker environment variables
+-- This script runs after the database is created
 
 -- Create enum types
 CREATE TYPE user_gender AS ENUM ('male', 'female', 'not selected');

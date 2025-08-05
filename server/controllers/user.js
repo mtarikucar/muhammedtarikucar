@@ -33,7 +33,7 @@ async function updateUserById(req, res, next) {
     const updateData = req.body;
 
     // Check if user exists
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({
         status: 'error',
@@ -52,7 +52,7 @@ async function updateUserById(req, res, next) {
     // Remove sensitive fields that shouldn't be updated directly
     delete updateData.password;
     delete updateData.role; // Only admin can change roles
-    delete updateData._id;
+    delete updateData.id;
     delete updateData.createdAt;
     delete updateData.updatedAt;
 
@@ -62,11 +62,12 @@ async function updateUserById(req, res, next) {
     }
 
     // Update user
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      updateData,
-      { new: true, runValidators: true }
-    ).select('-password'); // Exclude password from response
+    await user.update(updateData);
+    
+    // Get updated user without password
+    const updatedUser = await User.findByPk(userId, {
+      attributes: { exclude: ['password'] }
+    });
 
     res.status(200).json({
       status: 'success',
@@ -85,10 +86,12 @@ async function updateUserById(req, res, next) {
 
 async function deleteUser(req, res) {
   try {
-    const gonnaDeletedUser = await models.user.findByPk(req.params.id);
-    await gonnaDeletedUser.save({
+    const gonnaDeletedUser = await User.findByPk(req.params.id);
+    if (!gonnaDeletedUser) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+    await gonnaDeletedUser.update({
       isActive: false,
-      isDeleted: true,
     });
     res.status(200).json({
       message: "User is deleted successfully!",
@@ -100,7 +103,10 @@ async function deleteUser(req, res) {
 
 async function deleteUserPermanent(req, res) {
   try {
-    const gonnaDeletedUser = await models.user.findByPk(req.params.id);
+    const gonnaDeletedUser = await User.findByPk(req.params.id);
+    if (!gonnaDeletedUser) {
+      return res.status(404).json({ message: "User not found!" });
+    }
     await gonnaDeletedUser.destroy();
     res.status(200).json({
       message: "User is deleted successfully as permanently!",

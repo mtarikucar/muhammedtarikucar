@@ -156,7 +156,7 @@ const Campaign = sequelize.define('Campaign', {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-            model: 'Users',
+            model: 'users',
             key: 'id'
         }
     }

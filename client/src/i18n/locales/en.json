@@ -3,10 +3,12 @@
     "home": "Home",
     "blog": "Blog",
     "about": "About",
+    "categories": "Categories",
     "login": "Login",
     "profile": "Profile",
     "settings": "Settings",
     "writePost": "Write Post",
+    "adminDashboard": "Admin Dashboard",
     "logout": "Logout"
   },
   "home": {
@@ -21,17 +23,7 @@
     "newsletterDesc": "Leave your email address to stay updated on my new posts, projects, and announcements.",
     "emailPlaceholder": "Your email address",
     "subscribe": "Subscribe",
-    "noSpam": "We don't spam. You can unsubscribe anytime.",
-    "categories": {
-      "technology": "Technology",
-      "programming": "Programming",
-      "webDevelopment": "Web Development",
-      "mobile": "Mobile",
-      "ai": "Artificial Intelligence",
-      "career": "Career",
-      "personal": "Personal",
-      "tutorial": "Tutorial"
-    }
+    "noSpam": "We don't spam. You can unsubscribe anytime."
   },
   "blog": {
     "search": "Search",
@@ -124,7 +116,29 @@
     "add": "Add",
     "update": "Update",
     "create": "Create",
-    "remove": "Remove"
+    "remove": "Remove",
+    "view": "View",
+    "viewAll": "View All",
+    "search": "Search",
+    "page": "Page",
+    "tag": "Tag",
+    "category": "Category",
+    "accessDenied": "Access Denied",
+    "adminOnly": "This page is only accessible to administrators"
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "welcomeBack": "Welcome back",
+    "totalUsers": "Total Users",
+    "totalPosts": "Total Posts",
+    "totalViews": "Total Views",
+    "totalLikes": "Total Likes",
+    "recentPosts": "Recent Posts",
+    "quickActions": "Quick Actions",
+    "createPost": "Create Post",
+    "manageCategories": "Manage Categories",
+    "moderateChat": "Moderate Chat",
+    "newPost": "New Post"
   },
   "chat": {
     "title": "Live Chat",

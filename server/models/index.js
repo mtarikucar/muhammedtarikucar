@@ -3,11 +3,13 @@ const { sequelize } = require('../config/database');
 // Import all models
 const User = require('./User.model');
 const Post = require('./Post.model');
+// const PostImage = require('./PostImage.model'); // Table doesn't exist yet
 const Category = require('./Category.model');
 const Community = require('./Community.model');
 const Room = require('./Room.model');
 const Message = require('./Message.model');
 const Event = require('./Event.model');
+const { ChatRoom, ChatMessage, UserOnlineStatus } = require('./Chat.model');
 
 // Define associations
 
@@ -23,6 +25,10 @@ User.hasMany(Message, { foreignKey: 'senderId', as: 'messages' });
 // Post associations
 Post.belongsTo(User, { foreignKey: 'authorId', as: 'author' });
 Post.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
+// Post.hasMany(PostImage, { foreignKey: 'postId', as: 'images' }); // Table doesn't exist yet
+
+// PostImage associations - commented until table exists
+// PostImage.belongsTo(Post, { foreignKey: 'postId', as: 'post' });
 
 // Category associations
 Category.hasMany(Post, { foreignKey: 'categoryId', as: 'posts' });
@@ -91,6 +97,22 @@ const UserPostLike = sequelize.define('UserPostLike', {
 User.belongsToMany(Post, { through: UserPostLike, foreignKey: 'userId', as: 'likedPosts' });
 Post.belongsToMany(User, { through: UserPostLike, foreignKey: 'postId', as: 'likedByUsers' });
 
+// Chat associations
+ChatRoom.belongsTo(User, { foreignKey: 'createdById', as: 'createdBy' });
+User.hasMany(ChatRoom, { foreignKey: 'createdById', as: 'createdChatRooms' });
+
+ChatMessage.belongsTo(ChatRoom, { foreignKey: 'roomId', as: 'room' });
+ChatMessage.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
+ChatMessage.belongsTo(User, { foreignKey: 'deletedById', as: 'deletedBy' });
+ChatMessage.belongsTo(ChatMessage, { foreignKey: 'replyToId', as: 'replyTo' });
+
+ChatRoom.hasMany(ChatMessage, { foreignKey: 'roomId', as: 'messages' });
+User.hasMany(ChatMessage, { foreignKey: 'senderId', as: 'chatMessages' });
+
+UserOnlineStatus.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+UserOnlineStatus.belongsTo(ChatRoom, { foreignKey: 'currentRoomId', as: 'currentRoom' });
+User.hasOne(UserOnlineStatus, { foreignKey: 'userId', as: 'onlineStatus' });
+
 module.exports = {
   sequelize,
   User,
@@ -101,5 +123,8 @@ module.exports = {
   Message,
   Event,
   UserRoom,
-  UserPostLike
+  UserPostLike,
+  ChatRoom,
+  ChatMessage,
+  UserOnlineStatus
 };

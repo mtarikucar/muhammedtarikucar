@@ -22,18 +22,6 @@ const languages = [
     name: 'English',
     flag: '🇺🇸',
     dir: 'ltr'
-  },
-  {
-    code: 'ar',
-    name: 'العربية',
-    flag: '🇸🇦',
-    dir: 'rtl'
-  },
-  {
-    code: 'fr',
-    name: 'Français',
-    flag: '🇫🇷',
-    dir: 'ltr'
   }
 ];
 

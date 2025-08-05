@@ -1,7 +1,8 @@
 const {
   createPost,
   getPosts,
-  getPostBySlug,
+  getPostById,
+  getPost,
   updatePost,
   deletePost,
   addComment,
@@ -27,12 +28,15 @@ router.get("/category/:category", getPostsByCategory);
 // Get user's own posts (must be before /:slug route)
 router.get("/my-posts", authenticate, getUserPosts);
 
+// Get post by ID for editing (authenticated)
+router.get("/id/:id", authenticate, getPostById);
+
 // Single post route (must be after specific routes)
-router.get("/:slug", getPostBySlug);
+router.get("/:id", getPost);
 
 // Comment routes (authenticated users can add comments)
-router.post('/:slug/comments', authenticate, addComment);
-router.post('/:slug/like', authenticate, toggleLike);
+router.post('/:id/comments', authenticate, addComment);
+router.post('/:id/like', authenticate, toggleLike);
 
 // User routes (authenticated users can create posts)
 router.post("/", verifyTokenAndAuth, createPost);
@@ -42,7 +46,7 @@ router.put("/:id", verifyTokenAndAuth, updatePost);
 router.delete("/:id", verifyTokenAndAuth, deletePost);
 
 // Admin-only routes
-router.patch("/comments/:postId/:commentId", verifyTokenAndAdmin, moderateComment);
-router.delete("/comments/:postId/:commentId", verifyTokenAndAdmin, deleteComment);
+router.patch("/:id/comments/:commentId", verifyTokenAndAdmin, moderateComment);
+router.delete("/:id/comments/:commentId", verifyTokenAndAdmin, deleteComment);
 
 module.exports = router;

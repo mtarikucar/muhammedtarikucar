@@ -2,13 +2,12 @@ const { Sequelize } = require('sequelize');
 const config = require('./index');
 const { logger } = require('../utils/logger');
 
-// Create Sequelize instance
-const sequelize = new Sequelize(config.db.url || {
-  database: config.db.database,
-  username: config.db.username,
-  password: config.db.password,
-  host: config.db.host,
-  port: config.db.port,
+// Create Sequelize instance - strict configuration
+if (!config.db.url) {
+  throw new Error('DATABASE_URL is required');
+}
+
+const sequelize = new Sequelize(config.db.url, {
   dialect: config.db.dialect,
   logging: config.db.logging,
   pool: config.db.pool,
@@ -33,7 +32,8 @@ const testConnection = async () => {
 // Sync database
 const syncDatabase = async (force = false) => {
   try {
-    await sequelize.sync({ force });
+    // Use alter only in development, skip if tables exist
+    await sequelize.sync({ force, alter: false });
     logger.info(`Database synchronized ${force ? '(forced)' : ''}`);
   } catch (error) {
     logger.error('Error synchronizing database:', error);

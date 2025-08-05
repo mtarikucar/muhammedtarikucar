@@ -61,37 +61,6 @@ const BlogSidebar = ({
 
   return (
     <div className="space-y-6">
-      {/* Search */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card>
-          <CardHeader floated={false} shadow={false} className="m-0 p-4 pb-0">
-            <Typography variant="h6" color="blue-gray">
-              Arama
-            </Typography>
-          </CardHeader>
-          <CardBody className="pt-2">
-            <form onSubmit={handleSearch}>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="Blog yazılarında ara..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                  className="!border-t-blue-gray-200 focus:!border-t-gray-900"
-                />
-                <Button type="submit" size="sm" color="blue">
-                  Ara
-                </Button>
-              </div>
-            </form>
-          </CardBody>
-        </Card>
-      </motion.div>
 
       {/* Popular Posts */}
       {popularPosts.length > 0 && (
@@ -113,7 +82,7 @@ const BlogSidebar = ({
               <List className="p-0">
                 {popularPosts.slice(0, 5).map((post, index) => (
                   <ListItem key={post._id} className="p-2 hover:bg-gray-50">
-                    <Link to={`/blog/${post.slug}`} className="w-full">
+                    <Link to={`/blog/${post.id}`} className="w-full">
                       <div className="flex gap-3">
                         {post.featuredImage && (
                           <img
@@ -167,7 +136,7 @@ const BlogSidebar = ({
               <List className="p-0">
                 {recentPosts.slice(0, 5).map((post, index) => (
                   <ListItem key={post._id} className="p-2 hover:bg-gray-50">
-                    <Link to={`/blog/${post.slug}`} className="w-full">
+                    <Link to={`/blog/${post.id}`} className="w-full">
                       <div className="flex gap-3">
                         {post.featuredImage && (
                           <img
@@ -214,10 +183,10 @@ const BlogSidebar = ({
             <CardBody className="pt-2">
               <div className="flex flex-wrap gap-2">
                 {categories.map((category, index) => (
-                  <Link key={index} to={`/blog/category/${category._id}`}>
+                  <Link key={index} to={`/blog?category=${category.id || category._id}`}>
                     <Chip
-                      value={`${category._id ? category._id.replace('-', ' ') : 'Genel'} (${category.count || 0})`}
-                      color={getCategoryColor(category._id)}
+                      value={`${category.name || category.title || 'Genel'} (${category.postCount || category.count || 0})`}
+                      color={getCategoryColor(category.id || category._id)}
                       className="capitalize cursor-pointer hover:shadow-md transition-shadow"
                     />
                   </Link>

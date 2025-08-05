@@ -40,7 +40,7 @@ const ChatRoom = sequelize.define('ChatRoom', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -84,7 +84,7 @@ const ChatMessage = sequelize.define('ChatMessage', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'ChatRooms',
+      model: 'chat_rooms',
       key: 'id'
     }
   },
@@ -92,7 +92,7 @@ const ChatMessage = sequelize.define('ChatMessage', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -129,7 +129,7 @@ const ChatMessage = sequelize.define('ChatMessage', {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -137,7 +137,7 @@ const ChatMessage = sequelize.define('ChatMessage', {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
-      model: 'ChatMessages',
+      model: 'chat_messages',
       key: 'id'
     }
   },
@@ -173,7 +173,7 @@ const UserOnlineStatus = sequelize.define('UserOnlineStatus', {
     allowNull: false,
     unique: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -189,7 +189,7 @@ const UserOnlineStatus = sequelize.define('UserOnlineStatus', {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
-      model: 'ChatRooms',
+      model: 'chat_rooms',
       key: 'id'
     }
   },
@@ -216,75 +216,6 @@ const UserOnlineStatus = sequelize.define('UserOnlineStatus', {
   ]
 });
 
-// Basic class methods for ChatRoom
-ChatRoom.getPublicRooms = async function() {
-  const User = require('./User.model');
-  return await this.findAll({
-    where: { type: 'public', isActive: true },
-    include: [{
-      model: User,
-      as: 'createdBy',
-      attributes: ['name', 'image']
-    }],
-    order: [['currentUsers', 'DESC'], ['createdAt', 'DESC']]
-  });
-};
-
-// Basic instance methods for ChatRoom
-ChatRoom.prototype.addUser = async function() {
-  this.currentUsers += 1;
-  return await this.save();
-};
-
-ChatRoom.prototype.removeUser = async function() {
-  if (this.currentUsers > 0) {
-    this.currentUsers -= 1;
-  }
-  return await this.save();
-};
-
-// Basic class methods for ChatMessage
-ChatMessage.getRoomMessages = async function(roomId, page = 1, limit = 50) {
-  const User = require('./User.model');
-  const offset = (page - 1) * limit;
-
-  return await this.findAll({
-    where: { roomId, isDeleted: false },
-    include: [{
-      model: User,
-      as: 'sender',
-      attributes: ['name', 'image']
-    }],
-    order: [['createdAt', 'DESC']],
-    offset,
-    limit
-  });
-};
-
-// Basic class methods for UserOnlineStatus
-UserOnlineStatus.setUserOnline = async function(userId, socketId, roomId = null) {
-  const [status] = await this.upsert({
-    userId,
-    isOnline: true,
-    status: 'online',
-    lastSeen: new Date(),
-    socketId,
-    currentRoomId: roomId
-  });
-  return status;
-};
-
-UserOnlineStatus.setUserOffline = async function(userId) {
-  return await this.update({
-    isOnline: false,
-    status: 'offline',
-    lastSeen: new Date(),
-    socketId: null,
-    currentRoomId: null
-  }, {
-    where: { userId }
-  });
-};
 
 module.exports = {
   ChatRoom,

@@ -2,7 +2,8 @@
   "nav": {
     "home": "Ana Sayfa",
     "blog": "Blog",
-    "about": "Hakkımda",
+    "about": "Hakkında",
+    "categories": "Kategoriler",
     "login": "Giriş Yap",
     "profile": "Profilim",
     "settings": "Ayarlar",
@@ -22,17 +23,7 @@
     "newsletterDesc": "Yeni yazılarımdan, projelerimden ve duyurularımdan haberdar olmak için e-posta adresini bırak.",
     "emailPlaceholder": "E-posta adresin",
     "subscribe": "Abone Ol",
-    "noSpam": "Spam yapmıyoruz. İstediğin zaman abonelikten çıkabilirsin.",
-    "categories": {
-      "technology": "Teknoloji",
-      "programming": "Programlama",
-      "webDevelopment": "Web Geliştirme",
-      "mobile": "Mobil",
-      "ai": "Yapay Zeka",
-      "career": "Kariyer",
-      "personal": "Kişisel",
-      "tutorial": "Eğitim"
-    }
+    "noSpam": "Spam yapmıyoruz. İstediğin zaman abonelikten çıkabilirsin."
   },
   "blog": {
     "search": "Arama",
@@ -84,7 +75,7 @@
   "search": {
     "noQuery": "Arama sorgusu girilmedi",
     "noQueryDesc": "Sonuçları görmek için bir arama terimi girin.",
-    "resultsFor": "Arama sonuçları:",
+    "resultsFor": "Arama sonuçları",
     "posts": "Yazılar",
     "users": "Kullanıcılar",
     "categories": "Kategoriler"
@@ -128,6 +119,10 @@
     "remove": "Kaldır",
     "view": "Görüntüle",
     "viewAll": "Tümünü Gör",
+    "search": "Ara",
+    "page": "Sayfa",
+    "tag": "Etiket",
+    "category": "Kategori",
     "accessDenied": "Erişim Reddedildi",
     "adminOnly": "Bu sayfa sadece yöneticiler için erişilebilir"
   },

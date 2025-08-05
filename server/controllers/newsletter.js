@@ -13,7 +13,9 @@ async function subscribe(req, res, next) {
     }
 
     // Check if already subscribed
-    const existingSubscriber = await Subscriber.findOne({ email: email.toLowerCase() });
+    const existingSubscriber = await Subscriber.findOne({ 
+      where: { email: email.toLowerCase() } 
+    });
     
     if (existingSubscriber) {
       if (existingSubscriber.status === 'active') {
@@ -23,11 +25,12 @@ async function subscribe(req, res, next) {
         });
       } else {
         // Reactivate subscription
-        existingSubscriber.status = 'active';
-        existingSubscriber.subscriptionDate = new Date();
-        existingSubscriber.unsubscribeDate = undefined;
-        existingSubscriber.unsubscribeReason = undefined;
-        await existingSubscriber.save();
+        await existingSubscriber.update({
+          status: 'active',
+          subscriptionDate: new Date(),
+          unsubscribeDate: null,
+          unsubscribeReason: null
+        });
         
         return res.json({
           status: 'success',
@@ -39,15 +42,13 @@ async function subscribe(req, res, next) {
     // Create new subscriber
     const confirmationToken = crypto.randomBytes(32).toString('hex');
     
-    const subscriber = new Subscriber({
+    const subscriber = await Subscriber.create({
       email: email.toLowerCase(),
       name: name || '',
       preferences: preferences || {},
       confirmationToken,
       source: 'website'
     });
-
-    await subscriber.save();
 
     // TODO: Send confirmation email
     logger.info(`New newsletter subscription: ${email}`);
@@ -67,13 +68,19 @@ async function confirmSubscription(req, res, next) {
   try {
     const { token } = req.params;
 
-    const subscriber = await Subscriber.findOne({ confirmationToken: token });
+    const subscriber = await Subscriber.findOne({ 
+      where: { confirmationToken: token } 
+    });
     
     if (!subscriber) {
       return next(AppError.notFound('Invalid confirmation token'));
     }
 
-    await subscriber.confirm();
+    await subscriber.update({
+      status: 'active',
+      confirmedAt: new Date(),
+      confirmationToken: null
+    });
 
     logger.info(`Newsletter subscription confirmed: ${subscriber.email}`);
 
@@ -96,13 +103,19 @@ async function unsubscribe(req, res, next) {
       return next(AppError.validation('Email is required'));
     }
 
-    const subscriber = await Subscriber.findOne({ email: email.toLowerCase() });
+    const subscriber = await Subscriber.findOne({ 
+      where: { email: email.toLowerCase() } 
+    });
     
     if (!subscriber) {
       return next(AppError.notFound('Email not found in our subscription list'));
     }
 
-    await subscriber.unsubscribe(reason || 'User requested');
+    await subscriber.update({
+      status: 'unsubscribed',
+      unsubscribeDate: new Date(),
+      unsubscribeReason: reason || 'User requested'
+    });
 
     logger.info(`Newsletter unsubscription: ${email}`);
 
@@ -126,21 +139,22 @@ async function getSubscribers(req, res, next) {
       search 
     } = req.query;
 
-    const query = { status };
+    const where = { status };
     
     if (search) {
-      query.$or = [
-        { email: { $regex: search, $options: 'i' } },
-        { name: { $regex: search, $options: 'i' } }
+      const { Op } = require('sequelize');
+      where[Op.or] = [
+        { email: { [Op.iLike]: `%${search}%` } },
+        { name: { [Op.iLike]: `%${search}%` } }
       ];
     }
 
-    const subscribers = await Subscriber.find(query)
-      .sort({ subscriptionDate: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Subscriber.countDocuments(query);
+    const { count: total, rows: subscribers } = await Subscriber.findAndCountAll({
+      where,
+      order: [['subscriptionDate', 'DESC']],
+      limit: limit * 1,
+      offset: (page - 1) * limit
+    });
 
     res.json({
       status: 'success',
@@ -164,41 +178,36 @@ async function getSubscribers(req, res, next) {
 // Get subscriber statistics (admin only)
 async function getSubscriberStats(req, res, next) {
   try {
-    const totalSubscribers = await Subscriber.countDocuments({ status: 'active' });
-    const totalUnsubscribed = await Subscriber.countDocuments({ status: 'unsubscribed' });
-    const totalBounced = await Subscriber.countDocuments({ status: 'bounced' });
+    const totalSubscribers = await Subscriber.count({ where: { status: 'active' } });
+    const totalUnsubscribed = await Subscriber.count({ where: { status: 'unsubscribed' } });
+    const totalBounced = await Subscriber.count({ where: { status: 'bounced' } });
     
     // Get subscription growth over time (last 12 months)
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
-    const growthData = await Subscriber.aggregate([
-      {
-        $match: {
-          subscriptionDate: { $gte: twelveMonthsAgo }
-        }
+    const { Op, sequelize } = require('sequelize');
+    const growthData = await Subscriber.findAll({
+      where: {
+        subscriptionDate: { [Op.gte]: twelveMonthsAgo }
       },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$subscriptionDate' },
-            month: { $month: '$subscriptionDate' }
-          },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $sort: { '_id.year': 1, '_id.month': 1 }
-      }
-    ]);
+      attributes: [
+        [sequelize.fn('EXTRACT', sequelize.literal('YEAR FROM "subscriptionDate"')), 'year'],
+        [sequelize.fn('EXTRACT', sequelize.literal('MONTH FROM "subscriptionDate"')), 'month'],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      group: [
+        sequelize.fn('EXTRACT', sequelize.literal('YEAR FROM "subscriptionDate"')),
+        sequelize.fn('EXTRACT', sequelize.literal('MONTH FROM "subscriptionDate"'))
+      ],
+      order: [
+        [sequelize.fn('EXTRACT', sequelize.literal('YEAR FROM "subscriptionDate"')), 'ASC'],
+        [sequelize.fn('EXTRACT', sequelize.literal('MONTH FROM "subscriptionDate"')), 'ASC']
+      ]
+    });
 
-    // Get category preferences
-    const categoryStats = await Subscriber.aggregate([
-      { $match: { status: 'active' } },
-      { $unwind: '$preferences.categories' },
-      { $group: { _id: '$preferences.categories', count: { $sum: 1 } } },
-      { $sort: { count: -1 } }
-    ]);
+    // Get category preferences - simplified for PostgreSQL
+    const categoryStats = [];
 
     res.json({
       status: 'success',
@@ -233,7 +242,7 @@ async function createCampaign(req, res, next) {
       return next(AppError.validation('Title, subject, and content are required'));
     }
 
-    const campaign = new Campaign({
+    const campaign = await Campaign.create({
       title,
       subject,
       content,
@@ -241,10 +250,8 @@ async function createCampaign(req, res, next) {
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       targetAudience: targetAudience || {},
       template: template || 'basic',
-      author: req.user.id
+      authorId: req.user.id
     });
-
-    await campaign.save();
 
     logger.info(`New newsletter campaign created: ${title} by ${req.user.name}`);
 
@@ -264,18 +271,24 @@ async function getCampaigns(req, res, next) {
   try {
     const { page = 1, limit = 10, status } = req.query;
 
-    const query = {};
+    const where = {};
     if (status) {
-      query.status = status;
+      where.status = status;
     }
 
-    const campaigns = await Campaign.find(query)
-      .populate('author', 'name email')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Campaign.countDocuments(query);
+    const { count: total, rows: campaigns } = await Campaign.findAndCountAll({
+      where,
+      include: [
+        {
+          model: require('../models').User,
+          as: 'author',
+          attributes: ['id', 'name', 'email']
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: limit * 1,
+      offset: (page - 1) * limit
+    });
 
     res.json({
       status: 'success',

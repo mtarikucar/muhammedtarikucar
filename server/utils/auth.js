@@ -66,9 +66,16 @@ const comparePassword = async (password, hash) => {
  * @returns {string} - JWT access token
  */
 const generateAccessToken = (user) => {
+  if (!user.id) {
+    throw new Error('User ID is required for token generation');
+  }
+  if (!user.role) {
+    throw new Error('User role is required for token generation');
+  }
+  
   return jwt.sign(
     {
-      id: user._id.toString(),
+      id: user.id,
       role: user.role,
     },
     config.jwt.secret,
@@ -84,9 +91,16 @@ const generateAccessToken = (user) => {
  * @returns {string} - JWT refresh token
  */
 const generateRefreshToken = (user) => {
+  if (!user.id) {
+    throw new Error('User ID is required for refresh token generation');
+  }
+  if (!user.role) {
+    throw new Error('User role is required for refresh token generation');
+  }
+  
   return jwt.sign(
     {
-      id: user._id.toString(),
+      id: user.id,
       role: user.role,
     },
     config.jwt.refreshSecret,

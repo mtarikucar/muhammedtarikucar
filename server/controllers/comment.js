@@ -23,31 +23,37 @@ async function createComment(req, res, next) {
     }
 
     // Check if post exists
-    const post = await Post.findById(postId);
+    const post = await Post.findByPk(postId);
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
     // Create new comment
-    const comment = new Comment({
+    const comment = await Comment.create({
       userId: req.user.id,
       postId,
       content: content.trim(),
-      parentComment: parentComment || null,
+      parentCommentId: parentComment || null,
       isApproved: true // Auto-approve comments from authenticated users
     });
 
-    await comment.save();
-
-    // Populate user information
-    await comment.populate('userId', 'name image');
+    // Get comment with user information
+    const commentWithUser = await Comment.findByPk(comment.id, {
+      include: [
+        {
+          model: require('../models').User,
+          as: 'user',
+          attributes: ['id', 'name', 'image']
+        }
+      ]
+    });
 
     logger.info(`New comment created by user ${req.user.id} on post ${postId}`);
 
     res.status(201).json({
       status: 'success',
       message: 'Comment created successfully',
-      data: { comment }
+      data: { comment: commentWithUser }
     });
   } catch (error) {
     logger.error('Create comment error:', error);
@@ -67,22 +73,33 @@ async function getCommentsByPost(req, res, next) {
     const { page = 1, limit = 20 } = req.query;
 
     // Check if post exists
-    const post = await Post.findById(postId);
+    const post = await Post.findByPk(postId);
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
-    const comments = await Comment.find({ 
-      postId, 
-      isApproved: true 
-    })
-    .populate('userId', 'name image')
-    .populate('parentComment', 'content userId')
-    .sort({ createdAt: -1 })
-    .limit(limit * 1)
-    .skip((page - 1) * limit);
-
-    const total = await Comment.countDocuments({ postId, isApproved: true });
+    const { count: total, rows: comments } = await Comment.findAndCountAll({
+      where: { 
+        postId, 
+        isApproved: true 
+      },
+      include: [
+        {
+          model: require('../models').User,
+          as: 'user',
+          attributes: ['id', 'name', 'image']
+        },
+        {
+          model: Comment,
+          as: 'parentComment',
+          attributes: ['id', 'content', 'userId'],
+          required: false
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: limit * 1,
+      offset: (page - 1) * limit
+    });
 
     res.json({
       status: 'success',
@@ -118,30 +135,37 @@ async function updateComment(req, res, next) {
       return next(AppError.validation('Content is required'));
     }
 
-    const comment = await Comment.findById(id);
+    const comment = await Comment.findByPk(id);
     if (!comment) {
       return next(AppError.notFound('Comment not found'));
     }
 
     // Check if user is the author or admin
-    const isAuthor = comment.userId.toString() === req.user.id;
+    const isAuthor = comment.userId === req.user.id;
     const isAdmin = req.user.role === 'admin';
 
     if (!isAuthor && !isAdmin) {
       return next(AppError.forbidden('You can only update your own comments'));
     }
 
-    comment.content = content.trim();
-    await comment.save();
+    await comment.update({ content: content.trim() });
 
-    await comment.populate('userId', 'name image');
+    const updatedComment = await Comment.findByPk(id, {
+      include: [
+        {
+          model: require('../models').User,
+          as: 'user',
+          attributes: ['id', 'name', 'image']
+        }
+      ]
+    });
 
     logger.info(`Comment updated by user ${req.user.id}`);
 
     res.json({
       status: 'success',
       message: 'Comment updated successfully',
-      data: { comment }
+      data: { comment: updatedComment }
     });
   } catch (error) {
     logger.error('Update comment error:', error);
@@ -159,20 +183,20 @@ async function deleteComment(req, res, next) {
   try {
     const { id } = req.params;
 
-    const comment = await Comment.findById(id);
+    const comment = await Comment.findByPk(id);
     if (!comment) {
       return next(AppError.notFound('Comment not found'));
     }
 
     // Check if user is the author or admin
-    const isAuthor = comment.userId.toString() === req.user.id;
+    const isAuthor = comment.userId === req.user.id;
     const isAdmin = req.user.role === 'admin';
 
     if (!isAuthor && !isAdmin) {
       return next(AppError.forbidden('You can only delete your own comments'));
     }
 
-    await Comment.findByIdAndDelete(id);
+    await comment.destroy();
 
     logger.info(`Comment deleted by user ${req.user.id}`);
 
@@ -197,24 +221,29 @@ async function toggleCommentLike(req, res, next) {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const comment = await Comment.findById(id);
+    const comment = await Comment.findByPk(id);
     if (!comment) {
       return next(AppError.notFound('Comment not found'));
     }
 
-    const hasLiked = comment.likedBy.includes(userId);
+    const likedBy = comment.likedBy || [];
+    const hasLiked = likedBy.includes(userId);
 
+    let newLikedBy, newLikes;
     if (hasLiked) {
       // Unlike
-      comment.likedBy.pull(userId);
-      comment.likes = Math.max(0, comment.likes - 1);
+      newLikedBy = likedBy.filter(id => id !== userId);
+      newLikes = Math.max(0, comment.likes - 1);
     } else {
       // Like
-      comment.likedBy.push(userId);
-      comment.likes += 1;
+      newLikedBy = [...likedBy, userId];
+      newLikes = comment.likes + 1;
     }
 
-    await comment.save();
+    await comment.update({ 
+      likedBy: newLikedBy, 
+      likes: newLikes 
+    });
 
     res.json({
       status: 'success',
@@ -246,14 +275,25 @@ async function getUserComments(req, res, next) {
       return next(AppError.forbidden('You can only view your own comments'));
     }
 
-    const comments = await Comment.find({ userId })
-      .populate('postId', 'title slug')
-      .populate('parentComment', 'content')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Comment.countDocuments({ userId });
+    const { count: total, rows: comments } = await Comment.findAndCountAll({
+      where: { userId },
+      include: [
+        {
+          model: require('../models').Post,
+          as: 'post',
+          attributes: ['id', 'title', 'slug']
+        },
+        {
+          model: Comment,
+          as: 'parentComment',
+          attributes: ['id', 'content'],
+          required: false
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: limit * 1,
+      offset: (page - 1) * limit
+    });
 
     res.json({
       status: 'success',

@@ -11,7 +11,7 @@ const CommunityRequest = sequelize.define('CommunityRequest', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -19,7 +19,7 @@ const CommunityRequest = sequelize.define('CommunityRequest', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'Communities',
+      model: 'communities',
       key: 'id'
     }
   },

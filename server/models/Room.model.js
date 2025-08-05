@@ -15,7 +15,7 @@ const Room = sequelize.define('Room', {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -28,7 +28,7 @@ const Room = sequelize.define('Room', {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
-      model: 'Communities',
+      model: 'communities',
       key: 'id'
     }
   }

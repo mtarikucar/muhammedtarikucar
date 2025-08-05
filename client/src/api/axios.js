@@ -2,12 +2,21 @@ import axios from 'axios';
 
 // Determine base URL based on environment
 const getBaseURL = () => {
-  // If we're in production or the hostname is the domain
-  if (import.meta.env.PROD || window.location.hostname === 'muhammedtarikucar.com' || window.location.hostname === 'www.muhammedtarikucar.com') {
+  // Check if running in development
+  if (import.meta.env.DEV) {
+    // In development, use the proxy setup
+    return '/api';
+  }
+  
+  // Production URLs
+  const prodDomains = ['muhammedtarikucar.com', 'www.muhammedtarikucar.com'];
+  
+  if (prodDomains.includes(window.location.hostname)) {
     return `${window.location.protocol}//${window.location.host}/api`;
   }
-  // Development fallback
-  return 'http://localhost:5000/api';
+  
+  // Default fallback for unknown environments
+  return '/api';
 };
 
 const BASE_URL = getBaseURL();

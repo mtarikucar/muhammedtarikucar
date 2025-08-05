@@ -3,9 +3,9 @@ import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import "react-toastify/dist/ReactToastify.css";
-import { SpeedDialWithTextOutside } from "./Components/SpeedDialWithTextOutside";
 import Footer from "./Components/Footer";
 import MainNavbar from "../components/Navbar/Navbar";
+import ChatSidebar from "../components/Chat/ChatSidebar";
 
 const Layout = () => {
   const { i18n } = useTranslation();
@@ -28,7 +28,8 @@ const Layout = () => {
       </main>
 
       <Footer />
-      <SpeedDialWithTextOutside />
+      
+      <ChatSidebar />
 
       <ToastContainer
         position="top-center"

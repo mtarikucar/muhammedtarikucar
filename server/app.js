@@ -107,7 +107,10 @@ const { testConnection, syncDatabase } = require('./config/database');
 const initializeDatabase = async () => {
   try {
     await testConnection();
-    await syncDatabase(false); // Set to true to force recreate tables
+    // In production, don't sync - tables are created by postgres-init.sql
+    if (process.env.NODE_ENV === 'development') {
+      // await syncDatabase(false); // Skipped - tables exist from postgres-init.sql
+    }
     logger.info('Database initialized successfully');
   } catch (error) {
     logger.error('Database initialization error:', error);

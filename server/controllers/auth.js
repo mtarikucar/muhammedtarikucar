@@ -31,7 +31,9 @@ async function register(req, res, next) {
 
     // Check if user already exists
     const existingUser = await User.findOne({
-      email: email.toLowerCase(),
+      where: {
+        email: email.toLowerCase()
+      }
     });
 
     if (existingUser) {
@@ -141,7 +143,7 @@ async function refresh(req, res, next) {
     const payload = verifyToken(refreshToken, config.jwt.refreshSecret);
 
     // Find user by id
-    const user = await User.findById(payload.id);
+    const user = await User.findByPk(payload.id);
 
     // Check if user exists
     if (!user || !user.isActive) {

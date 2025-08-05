@@ -8,15 +8,11 @@ async function createCommunity(req, res, next) {
     const { name, description } = req.body;
     const owner = req.user.id;
 
-    const newCommunity = new Community({ name, description, owner });
-    await newCommunity.save();
+    const newCommunity = await Community.create({ name, description, ownerId: owner });
 
-    await User.findByIdAndUpdate(
-      owner,
-      {
-        community: newCommunity._id,
-      },
-      { new: true } // return the updated document
+    await User.update(
+      { communityId: newCommunity.id },
+      { where: { id: owner } }
     );
 
     const admin = owner;
@@ -24,9 +20,8 @@ async function createCommunity(req, res, next) {
     try {
       await Room.create({
         name,
-        admin,
-        members: [admin],
-        isCommunity: newCommunity._id,
+        adminId: admin,
+        communityId: newCommunity.id,
       });
       return res.status(201).json(newCommunity);
     } catch (error) {
@@ -41,7 +36,15 @@ async function getCommunityById(req, res, next) {
   try {
     const communityId = req.params.id;
 
-    const community = await Community.findById(communityId).populate("members");
+    const community = await Community.findByPk(communityId, {
+      include: [
+        {
+          model: User,
+          as: 'members',
+          attributes: ['id', 'name', 'email', 'image']
+        }
+      ]
+    });
     res.json(community);
   } catch (er) {
     console.log(er);
@@ -52,7 +55,7 @@ async function getCommunityById(req, res, next) {
 
 async function updateCommunityById(req, res, next) {
   try {
-    const community = await Community.findById(req.params.id);
+    const community = await Community.findByPk(req.params.id);
     if (!community) {
       res.status(404).json({
         message: "Community not found!",
@@ -60,15 +63,11 @@ async function updateCommunityById(req, res, next) {
       return;
     }
 
-    const updatedCommunity = await Community.findByIdAndUpdate(
-      req.params.id,
-      {
-        name: req.body.name || community.name,
-        image: req.body.image || community.image,
-        description: req.body.description || community.description,
-      },
-      { new: true } // return the updated document
-    );
+    const updatedCommunity = await community.update({
+      name: req.body.name || community.name,
+      image: req.body.image || community.image,
+      description: req.body.description || community.description,
+    });
 
     res.status(200).json({
       message: "User is updated successfully!",
@@ -85,19 +84,20 @@ async function sendJoinRequest(req, res, next) {
     const communityId = req.params.communityId;
 
     const existingRequest = await CommunityRequest.findOne({
-      user: userId,
-      community: communityId,
+      where: {
+        userId: userId,
+        communityId: communityId,
+      }
     });
 
     if (existingRequest) {
       return res.status(400).json({ message: "Request already exists" });
     }
 
-    const joinRequest = new CommunityRequest({
-      user: userId,
-      community: communityId,
+    const joinRequest = await CommunityRequest.create({
+      userId: userId,
+      communityId: communityId,
     });
-    await joinRequest.save();
 
     res.status(201).json(joinRequest);
   } catch (err) {
@@ -110,16 +110,29 @@ async function handleJoinRequest(req, res, next) {
     const requestId = req.params.requestId;
     const action = req.body.action;
 
-    const request = await CommunityRequest.findById(requestId).populate(
-      "user community"
-    );
-    const room = await Room.findOne({ isCommunity: request.community._id });
+    const request = await CommunityRequest.findByPk(requestId, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: Community,
+          as: 'community',
+          attributes: ['id', 'name', 'ownerId']
+        }
+      ]
+    });
+    const room = await Room.findOne({ 
+      where: { communityId: request.community.id }
+    });
     
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
     }
 
-    if (request.community.owner.toString() !== req.user.id.toString()) {
+    if (request.community.ownerId !== req.user.id) {
       return res
         .status(403)
         .json({ message: "Not authorized to manage this community" });
@@ -127,25 +140,17 @@ async function handleJoinRequest(req, res, next) {
 
     if (action === "accept") {
       console.log(request);
-      request.status = "accepted";
-      request.community.members.push(request.user);
-      await User.findByIdAndUpdate(
-        request.user._id,
-        {
-          community: request.community._id
-        },
-        { new: true } // return the updated document
+      await request.update({ status: "accepted" });
+      await User.update(
+        { communityId: request.community.id },
+        { where: { id: request.user.id } }
       );
-      room.members.push(request.user._id);
-      await request.community.save();
-      await room.save();
+      // Add user to room through UserRoom association\n      const { UserRoom } = require('../models');\n      await UserRoom.create({\n        userId: request.user.id,\n        roomId: room.id\n      });
     } else if (action === "reject") {
-      request.status = "rejected";
+      await request.update({ status: "rejected" });
     } else {
       return res.status(400).json({ message: "Invalid action" });
     }
-
-    await request.save();
     res.status(200).json(request);
   } catch (err) {
     next(err);
@@ -156,23 +161,32 @@ async function getJoinRequests(req, res, next) {
   try {
     const {communityId} = req.params;
     console.log(communityId);
-    const community = await Community.findById(communityId);
+    const community = await Community.findByPk(communityId);
     console.log(community);
 
     if (!community) {
       return res.status(404).json({ message: "Community not found" });
     }
 
-    if (community.owner.toString() !== req.user.id.toString()) {
+    if (community.ownerId !== req.user.id) {
       return res
         .status(403)
         .json({ message: "Not authorized to manage this community" });
     }
 
-    const joinRequests = await CommunityRequest.find({
-      community: communityId,
-      status: "pending",
-    }).populate("user");
+    const joinRequests = await CommunityRequest.findAll({
+      where: {
+        communityId: communityId,
+        status: "pending",
+      },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email', 'image']
+        }
+      ]
+    });
 
     res.status(200).json(joinRequests);
   } catch (err) {

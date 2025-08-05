@@ -12,9 +12,11 @@ import BlogPost from "../pages/BlogPost";
 import Category from "../pages/Category";
 import Post from "../pages/Post";
 import Upload from "../pages/Upload";
+import PostEdit from "../pages/PostEdit";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
 import Categories from "../pages/Categories";
+import CategoriesManagement from "../pages/CategoriesManagement";
 import SearchResults from "../pages/SearchResults";
 import About from "../pages/About";
 import Chat from "../pages/Chat";
@@ -60,6 +62,8 @@ function AnimatedRoutes() {
           {/* Admin Routes */}
           <Route element={<RequireAuth allowedRoles={["admin"]} />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/categories" element={<CategoriesManagement />} />
+            <Route path="/post/:id/edit" element={<PostEdit />} />
           </Route>
 
           {/* Catch all route - must be last */}

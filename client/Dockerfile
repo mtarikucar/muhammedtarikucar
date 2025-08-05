@@ -9,13 +9,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies including terser
+RUN npm install --save-dev terser
 
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with production environment
+ENV NODE_ENV=production
 RUN npm run build
 
 # Production stage

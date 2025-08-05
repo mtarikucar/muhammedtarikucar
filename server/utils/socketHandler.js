@@ -44,18 +44,18 @@ const socketHandler = (io) => {
         const { roomId } = data;
         
         // Verify room exists and user has access
-        const room = await ChatRoom.findById(roomId);
+        const room = await ChatRoom.findByPk(roomId);
         if (!room) {
           socket.emit('error', { message: 'Room not found' });
           return;
         }
 
-        if (room.type === 'private' && !room.isModerator(userId)) {
+        if (room.type === 'private' && !room.moderators?.includes(userId) && room.createdById !== userId) {
           socket.emit('error', { message: 'Access denied to private room' });
           return;
         }
 
-        if (room.isBanned(userId)) {
+        if (room.bannedUsers?.some(ban => ban.userId === userId)) {
           socket.emit('error', { message: 'You are banned from this room' });
           return;
         }
@@ -70,7 +70,7 @@ const socketHandler = (io) => {
         roomConnections.get(roomId).add(userId);
 
         // Update room user count
-        await room.addUser();
+        await room.increment('currentUsers', { by: 1 });
 
         // Notify room about new user
         socket.to(roomId).emit('user_joined', {
@@ -110,9 +110,9 @@ const socketHandler = (io) => {
         }
 
         // Update room user count
-        const room = await ChatRoom.findById(roomId);
+        const room = await ChatRoom.findByPk(roomId);
         if (room) {
-          await room.removeUser();
+          await room.increment('currentUsers', { by: -1 });
         }
 
         // Notify room about user leaving
@@ -146,37 +146,48 @@ const socketHandler = (io) => {
         }
 
         // Verify room access
-        const room = await ChatRoom.findById(roomId);
+        const room = await ChatRoom.findByPk(roomId);
         if (!room) {
           socket.emit('error', { message: 'Room not found' });
           return;
         }
 
-        if (room.isBanned(userId)) {
+        if (room.bannedUsers?.some(ban => ban.userId === userId)) {
           socket.emit('error', { message: 'You are banned from this room' });
           return;
         }
 
         // Create message
-        const message = new ChatMessage({
-          room: roomId,
-          sender: userId,
+        const message = await ChatMessage.create({
+          roomId: roomId,
+          senderId: userId,
           content: content.trim(),
           type,
-          replyTo: replyTo || null,
+          replyToId: replyTo || null,
           attachments: attachments || []
         });
 
-        await message.save();
-        await message.populate('sender', 'name image');
-        
-        if (replyTo) {
-          await message.populate('replyTo', 'content sender');
-        }
+        // Fetch message with associations
+        const { User } = require('../models');
+        const messageWithUser = await ChatMessage.findByPk(message.id, {
+          include: [
+            {
+              model: User,
+              as: 'sender',
+              attributes: ['id', 'name', 'image']
+            },
+            {
+              model: ChatMessage,
+              as: 'replyTo',
+              attributes: ['id', 'content', 'senderId'],
+              required: false
+            }
+          ]
+        });
 
         // Broadcast message to room
         io.to(roomId).emit('new_message', {
-          message: message.toJSON(),
+          message: messageWithUser.toJSON(),
           timestamp: new Date()
         });
 
@@ -192,16 +203,29 @@ const socketHandler = (io) => {
       try {
         const { messageId, emoji } = data;
 
-        const message = await ChatMessage.findById(messageId);
+        const message = await ChatMessage.findByPk(messageId);
         if (!message) {
           socket.emit('error', { message: 'Message not found' });
           return;
         }
 
-        await message.addReaction(userId, emoji);
+        // Add reaction to message
+        const reactions = message.reactions || [];
+        const existingReaction = reactions.find(r => r.emoji === emoji);
+        
+        if (existingReaction) {
+          if (!existingReaction.users.includes(userId)) {
+            existingReaction.users.push(userId);
+            existingReaction.count += 1;
+          }
+        } else {
+          reactions.push({ emoji, users: [userId], count: 1 });
+        }
+        
+        await message.update({ reactions });
 
         // Broadcast reaction to room
-        io.to(message.room.toString()).emit('reaction_added', {
+        io.to(message.roomId).emit('reaction_added', {
           messageId,
           userId,
           emoji,
@@ -247,9 +271,9 @@ const socketHandler = (io) => {
             users.delete(userId);
             
             // Update room user count
-            const room = await ChatRoom.findById(roomId);
+            const room = await ChatRoom.findByPk(roomId);
             if (room) {
-              await room.removeUser();
+              await room.increment('currentUsers', { by: -1 });
             }
 
             // Notify room about user leaving
@@ -276,15 +300,12 @@ const socketHandler = (io) => {
 // Helper function to update user online status
 const updateUserOnlineStatus = async (userId, isOnline, socketId = null) => {
   try {
-    await UserOnlineStatus.findOneAndUpdate(
-      { user: userId },
-      {
-        isOnline,
-        lastSeen: new Date(),
-        socketId: isOnline ? socketId : null
-      },
-      { upsert: true, new: true }
-    );
+    const [status, created] = await UserOnlineStatus.upsert({
+      userId,
+      isOnline,
+      lastSeen: new Date(),
+      socketId: isOnline ? socketId : null
+    });
   } catch (error) {
     logger.error('Update online status error:', error);
   }

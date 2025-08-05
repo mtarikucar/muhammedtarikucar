@@ -27,7 +27,7 @@ import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import BlogSidebar from '../components/Blog/BlogSidebar';
 
 const BlogPost = () => {
-  const { slug } = useParams();
+  const { id } = useParams();
   const [liked, setLiked] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [commentForm, setCommentForm] = useState({
@@ -39,11 +39,11 @@ const BlogPost = () => {
 
   // Fetch post data
   const { data: post, isLoading: postLoading } = useQuery(
-    ['post', slug],
-    () => axios.get(`/posts/${slug}`).then((res) => res.data.data.post),
+    ['post', id],
+    () => axios.get(`/posts/${id}`).then((res) => res.data.data.post),
     {
       refetchOnWindowFocus: false,
-      enabled: !!slug,
+      enabled: !!id,
     }
   );
 
@@ -64,12 +64,12 @@ const BlogPost = () => {
   useEffect(() => {
     if (post) {
       axios.post('/analytics/track', {
-        path: `/blog/${slug}`,
+        path: `/blog/${id}`,
         referrer: document.referrer,
         userAgent: navigator.userAgent,
       }).catch(console.error);
     }
-  }, [post, slug]);
+  }, [post, id]);
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('tr-TR', {
@@ -95,7 +95,7 @@ const BlogPost = () => {
 
   const handleLike = async () => {
     try {
-      await axios.post(`/posts/${slug}/like`);
+      await axios.post(`/posts/${id}/like`);
       setLiked(!liked);
     } catch (error) {
       console.error('Error liking post:', error);
@@ -105,7 +105,7 @@ const BlogPost = () => {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`/posts/${slug}/comments`, commentForm);
+      await axios.post(`/posts/${id}/comments`, commentForm);
       setCommentForm({ name: '', email: '', website: '', text: '' });
       setShowCommentForm(false);
       // Show success message
@@ -192,8 +192,8 @@ const BlogPost = () => {
                 {/* Category */}
                 <div className="mb-4">
                   <Chip
-                    value={post.category ? post.category.replace('-', ' ') : 'Genel'}
-                    color={getCategoryColor(post.category)}
+                    value={post.category?.name || post.category || 'Genel'}
+                    color={getCategoryColor(post.category?.id || post.category)}
                     className="capitalize"
                   />
                 </div>

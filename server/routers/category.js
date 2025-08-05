@@ -14,14 +14,14 @@ const { verifyTokenAndAuth, verifyTokenAndAdmin } = require('../middlewares/veri
 // Public routes
 router.get('/', getCategories);
 router.get('/stats', getCategoryStats);
-router.get('/:id', getCategoryById);
+router.get('/:id', getCategoryById); // UUID only
 
-// Authenticated user routes (users can create categories)
-router.post('/', verifyTokenAndAuth, createCategory);
+// Authenticated user routes (only admin can create categories)
+router.post('/', verifyTokenAndAdmin, createCategory);
 
 // Admin routes
-router.put('/:id', verifyTokenAndAdmin, updateCategory);
-router.delete('/:id', verifyTokenAndAdmin, deleteCategory);
+router.put('/:id', verifyTokenAndAdmin, updateCategory); // UUID only
+router.delete('/:id', verifyTokenAndAdmin, deleteCategory); // UUID only
 router.post('/reorder', verifyTokenAndAdmin, reorderCategories);
 
 module.exports = router;

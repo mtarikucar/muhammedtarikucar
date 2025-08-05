@@ -68,8 +68,8 @@ const BlogHero = ({ featuredPost }) => {
             {/* Category Badge */}
             <div className="mb-4">
               <Chip
-                value={featuredPost.category ? featuredPost.category.replace('-', ' ') : 'Genel'}
-                color={getCategoryColor(featuredPost.category)}
+                value={featuredPost.category?.name || featuredPost.category || 'Genel'}
+                color={getCategoryColor(featuredPost.category?.id || featuredPost.category)}
                 className="capitalize mb-2"
               />
               <Chip

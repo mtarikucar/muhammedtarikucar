@@ -14,7 +14,7 @@ services:
     networks:
       - blog_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-blog_db}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -45,6 +45,8 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      NODE_ENV: production
     ports:
       - "5000:5000"
     volumes:
@@ -57,6 +59,21 @@ services:
         condition: service_healthy
     networks:
       - blog_network
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      # API routes
+      - "traefik.http.routers.blog-api.rule=Host(`muhammedtarikucar.com`,`www.muhammedtarikucar.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.blog-api.entrypoints=web,websecure"
+      - "traefik.http.routers.blog-api.tls=true"
+      - "traefik.http.routers.blog-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.blog-api.loadbalancer.server.port=5000"
+      # Socket.IO
+      - "traefik.http.routers.blog-socket.rule=Host(`muhammedtarikucar.com`,`www.muhammedtarikucar.com`) && PathPrefix(`/socket.io`)"
+      - "traefik.http.routers.blog-socket.entrypoints=web,websecure"
+      - "traefik.http.routers.blog-socket.tls=true"
+      - "traefik.http.routers.blog-socket.tls.certresolver=letsencrypt"
+      - "traefik.http.services.blog-socket.loadbalancer.server.port=5000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
@@ -70,7 +87,7 @@ services:
       context: ./client
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${CLIENT_URL}
+        - VITE_API_URL=${CLIENT_URL:-https://muhammedtarikucar.com}
     container_name: blog_client
     restart: always
     ports:
@@ -79,12 +96,24 @@ services:
       - server
     networks:
       - blog_network
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      # Main site
+      - "traefik.http.routers.blog.rule=Host(`muhammedtarikucar.com`,`www.muhammedtarikucar.com`)"
+      - "traefik.http.routers.blog.entrypoints=web,websecure"
+      - "traefik.http.routers.blog.tls=true"
+      - "traefik.http.routers.blog.tls.certresolver=letsencrypt"
+      - "traefik.http.services.blog.loadbalancer.server.port=80"
+      # Priority (API routes should have higher priority)
+      - "traefik.http.routers.blog.priority=1"
+      - "traefik.http.routers.blog-api.priority=10"
+      - "traefik.http.routers.blog-socket.priority=10"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 30s
       timeout: 10s
       retries: 3
-
 
   # Backup service (optional)
   backup:
@@ -92,7 +121,7 @@ services:
     container_name: blog_backup
     restart: always
     environment:
-      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-password123}
     volumes:
       - ./backups:/backups
       - ./scripts/backup.sh:/backup.sh:ro
@@ -115,4 +144,6 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.22.0.0/16
+        - subnet: 172.21.0.0/16
+  proxy:
+    external: true

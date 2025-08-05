@@ -18,7 +18,7 @@ import {
   Input,
   Textarea,
 } from "@material-tailwind/react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { PlusIcon } from "@heroicons/react/24/outline";
 
@@ -27,6 +27,7 @@ function Categories() {
   const { currentUser } = useSelector((state) => state.auth);
   const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newCategory, setNewCategory] = useState({
@@ -35,15 +36,17 @@ function Categories() {
     color: '#3B82F6'
   });
 
-  const { data: categories, isLoading } = useQuery(
+  const { data: categoriesData, isLoading } = useQuery(
     ["categories"],
     () => {
-      return axios.get("/api/categories").then((res) => res.data.data);
+      return axios.get("/categories").then((res) => res.data.data);
     },
     {
       refetchOnWindowFocus: false,
     }
   );
+
+  const categories = categoriesData?.categories || [];
 
   // Create category mutation
   const createCategoryMutation = useMutation(
@@ -117,24 +120,37 @@ function Categories() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories && categories.map((category) => (
-          <Card key={category._id} className="overflow-hidden hover:shadow-lg transition-shadow">
+          <Card 
+            key={category.id} 
+            className="overflow-hidden hover:shadow-lg transition-shadow"
+            style={{ borderTop: `4px solid ${category.color || '#3B82F6'}` }}
+          >
             <CardBody>
-              <Typography variant="h5" color="blue-gray" className="mb-2">
-                {category.name || category.title}
-              </Typography>
+              <div className="flex items-center justify-between mb-2">
+                <Typography variant="h5" color="blue-gray">
+                  {category.name || category.title}
+                </Typography>
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: category.color || '#3B82F6' }}
+                >
+                  <span className="text-white text-sm font-bold">
+                    {category.name?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
               <Typography color="gray" className="font-normal mb-6 line-clamp-3">
-                {category.description || category.content || t("categories.manageCategoriesDesc")}
+                {category.description || category.content || t("categories.noDescription")}
               </Typography>
               <div className="flex justify-between items-center">
                 <Typography variant="small" color="gray">
-                  {category.postCount || 0} posts
+                  {category.postCount || 0} yazı
                 </Typography>
                 <Button
                   variant="text"
                   color="blue"
                   className="flex items-center gap-2"
-                  as={Link}
-                  to={`/blog?category=${category.slug || category._id}`}
+                  onClick={() => navigate(`/blog?category=${category.id}`)}
                 >
                   {t("blog.viewAllPosts")}
                   <svg

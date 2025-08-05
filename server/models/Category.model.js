@@ -15,16 +15,6 @@ const Category = sequelize.define('Category', {
       this.setDataValue('name', value.trim());
     }
   },
-  slug: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    unique: true,
-    set(value) {
-      if (value) {
-        this.setDataValue('slug', value.toLowerCase().trim());
-      }
-    }
-  },
   description: {
     type: DataTypes.STRING(200),
     allowNull: true,
@@ -75,21 +65,26 @@ const Category = sequelize.define('Category', {
   tableName: 'categories',
   timestamps: true,
   indexes: [
-    { fields: ['slug'], unique: true },
     { fields: ['isActive'] },
     { fields: ['sortOrder'] }
   ]
 });
 
 // Hooks
+
 Category.beforeSave(async (category, options) => {
-  if (!category.slug || category.changed('name')) {
-    category.slug = category.name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single
-      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  // Validate required fields
+  if (!category.name) {
+    throw new Error('Category name is required');
+  }
+  
+  if (!category.createdById) {
+    throw new Error('Creator ID is required');
+  }
+  
+  // Validate color format
+  if (category.color && !/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(category.color)) {
+    throw new Error('Invalid color format. Must be hex color (e.g., #3B82F6)');
   }
 });
 
@@ -101,11 +96,6 @@ Category.getActiveCategories = async function() {
   });
 };
 
-Category.getCategoryBySlug = async function(slug) {
-  return await this.findOne({
-    where: { slug, isActive: true }
-  });
-};
 
 Category.updatePostCount = async function(categoryId) {
   const Post = require('./Post.model');
@@ -132,7 +122,7 @@ Category.prototype.decrementPostCount = async function() {
 };
 
 Category.prototype.getUrl = function() {
-  return `/blog/category/${this.slug}`;
+  return `/blog/category/${this.id}`;
 };
 
 module.exports = Category;

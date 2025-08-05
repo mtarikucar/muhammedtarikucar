@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
 import {
   Card,
   CardHeader,
@@ -19,6 +20,8 @@ import {
   EyeIcon,
   HeartIcon,
   PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
@@ -27,6 +30,8 @@ const AdminDashboard = () => {
   const { t } = useTranslation();
   const { currentUser } = useSelector((state) => state.auth);
   const axiosPrivate = useAxiosPrivate();
+  const queryClient = useQueryClient();
+  const [deletePostId, setDeletePostId] = useState(null);
 
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery(
@@ -53,6 +58,33 @@ const AdminDashboard = () => {
       enabled: currentUser?.role === 'admin',
     }
   );
+
+  // Delete post mutation
+  const deleteMutation = useMutation(
+    async (postId) => {
+      const response = await axiosPrivate.delete(`/posts/${postId}`);
+      return response.data;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['adminRecentPosts']);
+        queryClient.invalidateQueries(['adminStats']);
+        toast.success('Post başarıyla silindi!');
+        setDeletePostId(null);
+      },
+      onError: (error) => {
+        console.error('Post delete error:', error);
+        const errorMessage = error.response?.data?.message || 'Post silinirken hata oluştu';
+        toast.error(errorMessage);
+      },
+    }
+  );
+
+  const handleDeletePost = (postId) => {
+    if (window.confirm('Bu postu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+      deleteMutation.mutate(postId);
+    }
+  };
 
   if (currentUser?.role !== 'admin') {
     return (
@@ -190,7 +222,7 @@ const AdminDashboard = () => {
             <div className="space-y-4">
               {recentPosts?.map((post) => (
                 <div
-                  key={post._id}
+                  key={post.id}
                   className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex-1">
@@ -218,11 +250,30 @@ const AdminDashboard = () => {
                       color={post.status === 'published' ? 'green' : 'orange'}
                       size="sm"
                     />
-                    <Link to={`/blog/${post.slug}`}>
-                      <Button variant="text" size="sm">
-                        {t('common.view')}
+                    <div className="flex items-center gap-1">
+                      <Link to={`/post/${post.id}/edit`}>
+                        <Button variant="text" size="sm" className="flex items-center gap-1">
+                          <PencilSquareIcon className="h-4 w-4" />
+                          Düzenle
+                        </Button>
+                      </Link>
+                      <Link to={`/blog/${post.id}`}>
+                        <Button variant="text" size="sm">
+                          <EyeIcon className="h-4 w-4" />
+                          Görüntüle
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="text" 
+                        size="sm" 
+                        color="red"
+                        onClick={() => handleDeletePost(post.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                        Sil
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -233,31 +284,41 @@ const AdminDashboard = () => {
 
       {/* Quick Actions */}
       <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none">
+        <CardHeader>
           <Typography variant="h6" color="blue-gray">
-            {t('admin.quickActions')}
+             {t('admin.quickActions')}
           </Typography>
         </CardHeader>
         <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link to="/upload">
-              <Button variant="outlined" className="w-full">
-                {t('admin.createPost')}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <Link to="/admin/categories">
+              <Button
+                size="lg"
+                variant="outlined"
+                className="w-full flex items-center justify-center gap-2"
+                color="green"
+              >
+                <DocumentTextIcon className="h-5 w-5" />
+                 {t('admin.manageCategories')}
               </Button>
             </Link>
-            <Link to="/categories">
-              <Button variant="outlined" className="w-full">
-                {t('admin.manageCategories')}
-              </Button>
-            </Link>
+           
             <Link to="/chat">
-              <Button variant="outlined" className="w-full">
+              <Button
+                size="lg"
+                variant="outlined"
+                className="w-full flex items-center justify-center gap-2"
+                color="orange"
+                >
+                <ChatBubbleLeftRightIcon className="h-5 w-5" />
                 {t('admin.moderateChat')}
               </Button>
             </Link>
           </div>
         </CardBody>
       </Card>
+     
     </motion.div>
   );
 };

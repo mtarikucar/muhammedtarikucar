@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import io from 'socket.io-client';
 import useAxiosPrivate from './useAxiosPrivate';
@@ -12,49 +12,98 @@ const useChat = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
   const [rooms, setRooms] = useState([]);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
   
   const { currentUser, token } = useSelector((state) => state.auth);
   const axiosPrivate = useAxiosPrivate();
   const typingTimeoutRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
 
-  // Initialize socket connection
-  useEffect(() => {
-    if (currentUser && token) {
-      const getSocketURL = () => {
-        if (import.meta.env.PROD || window.location.hostname === 'muhammedtarikucar.com' || window.location.hostname === 'www.muhammedtarikucar.com') {
-          return `${window.location.protocol}//${window.location.host}`;
-        }
-        return 'http://localhost:5000';
-      };
+  // Initialize socket connection with reconnection logic
+  const initializeSocket = useCallback(() => {
+    if (!currentUser || !token) return;
 
-      const newSocket = io(getSocketURL(), {
-        auth: {
-          token: token
-        },
-        transports: ['websocket', 'polling'],
-        timeout: 20000,
-        forceNew: true
-      });
+    const getSocketURL = () => {
+      if (import.meta.env.DEV) {
+        // In development, use the proxy through current host
+        return window.location.origin;
+      }
+      
+      // Production URLs
+      const prodDomains = ['muhammedtarikucar.com', 'www.muhammedtarikucar.com'];
+      
+      if (prodDomains.includes(window.location.hostname)) {
+        return `${window.location.protocol}//${window.location.host}`;
+      }
+      
+      // Default fallback
+      return window.location.origin;
+    };
 
-      newSocket.on('connect', () => {
-        setIsConnected(true);
-        console.log('Connected to chat server');
-        toast.success('Connected to chat server');
-      });
+    const newSocket = io(getSocketURL(), {
+      auth: {
+        token: token
+      },
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      maxReconnectionAttempts: 5,
+      forceNew: false
+    });
 
-      newSocket.on('disconnect', (reason) => {
-        setIsConnected(false);
-        console.log('Disconnected from chat server:', reason);
-        if (reason === 'io server disconnect') {
-          toast.error('Disconnected from chat server');
-        }
-      });
+    newSocket.on('connect', () => {
+      setIsConnected(true);
+      setReconnectAttempts(0);
+      console.log('Connected to chat server');
+      
+      // Only show success toast on first connect or after reconnect
+      if (reconnectAttempts > 0) {
+        toast.success('Chat bağlantısı yeniden kuruldu');
+      }
+    });
 
-      newSocket.on('connect_error', (error) => {
-        setIsConnected(false);
-        console.error('Socket connection error:', error);
-        toast.error('Failed to connect to chat server: ' + (error.message || 'Connection failed'));
-      });
+    newSocket.on('disconnect', (reason) => {
+      setIsConnected(false);
+      setCurrentRoom(null);
+      setMessages([]);
+      setTypingUsers([]);
+      console.log('Disconnected from chat server:', reason);
+      
+      // Don't show error for intentional disconnects
+      if (reason !== 'io client disconnect') {
+        console.log('Attempting to reconnect...');
+      }
+    });
+
+    newSocket.on('connect_error', (error) => {
+      setIsConnected(false);
+      console.error('Socket connection error:', error);
+      
+      setReconnectAttempts(prev => prev + 1);
+      
+      // Show error only after multiple failed attempts
+      if (reconnectAttempts >= 3) {
+        toast.error('Chat bağlantı sorunu: ' + (error.message || 'Bağlantı başarısız'));
+      }
+    });
+
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('Reconnected after', attemptNumber, 'attempts');
+      setReconnectAttempts(0);
+    });
+
+    newSocket.on('reconnect_error', (error) => {
+      console.error('Reconnection error:', error);
+      setReconnectAttempts(prev => prev + 1);
+    });
+
+    newSocket.on('reconnect_failed', () => {
+      console.error('Failed to reconnect to chat server');
+      toast.error('Chat sunucusuna bağlanılamıyor. Lütfen sayfayı yenileyin.');
+    });
 
       newSocket.on('error', (error) => {
         console.error('Socket error:', error);
@@ -100,7 +149,7 @@ const useChat = () => {
 
       newSocket.on('reaction_added', (data) => {
         setMessages(prev => prev.map(msg => 
-          msg._id === data.messageId 
+          msg.id === data.messageId 
             ? { ...msg, reactions: [...(msg.reactions || []), { user: data.userId, emoji: data.emoji }] }
             : msg
         ));
@@ -109,10 +158,17 @@ const useChat = () => {
       setSocket(newSocket);
 
       return () => {
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
         newSocket.close();
       };
-    }
-  }, [currentUser, token]);
+  }, [currentUser, token, reconnectAttempts]);
+
+  // Initialize socket on mount
+  useEffect(() => {
+    initializeSocket();
+  }, [initializeSocket]);
 
   // Fetch rooms
   const fetchRooms = async () => {
@@ -177,7 +233,7 @@ const useChat = () => {
   const leaveRoom = () => {
     if (!socket || !currentRoom) return;
 
-    socket.emit('leave_room', { roomId: currentRoom._id });
+    socket.emit('leave_room', { roomId: currentRoom.id });
     setCurrentRoom(null);
     setMessages([]);
     setTypingUsers([]);
@@ -188,7 +244,7 @@ const useChat = () => {
     if (!socket || !currentRoom || !content.trim()) return;
 
     const messageData = {
-      roomId: currentRoom._id,
+      roomId: currentRoom.id,
       content: content.trim(),
       type,
       replyTo,
@@ -202,7 +258,7 @@ const useChat = () => {
   const sendTyping = () => {
     if (!socket || !currentRoom) return;
 
-    socket.emit('typing_start', { roomId: currentRoom._id });
+    socket.emit('typing_start', { roomId: currentRoom.id });
 
     // Clear existing timeout
     if (typingTimeoutRef.current) {
@@ -211,7 +267,7 @@ const useChat = () => {
 
     // Stop typing after 3 seconds
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing_stop', { roomId: currentRoom._id });
+      socket.emit('typing_stop', { roomId: currentRoom.id });
     }, 3000);
   };
 
@@ -219,7 +275,7 @@ const useChat = () => {
   const stopTyping = () => {
     if (!socket || !currentRoom) return;
 
-    socket.emit('typing_stop', { roomId: currentRoom._id });
+    socket.emit('typing_stop', { roomId: currentRoom.id });
     
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);

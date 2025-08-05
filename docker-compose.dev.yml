@@ -1,20 +1,25 @@
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: blog_mongodb_dev
+  # PostgreSQL Database
+  postgresql:
+    image: postgres:15
+    container_name: blog_postgresql_dev
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
-      MONGO_INITDB_DATABASE: blog_db
+      POSTGRES_DB: blogdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - mongodb_dev_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - postgresql_dev_data:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - blog_network_dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d blogdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Redis Cache
   redis:
@@ -37,9 +42,12 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: development
-      MONGODB_URI: mongodb://admin:password123@mongodb:27017/blog_db?authSource=admin
+      DATABASE_URL: postgresql://admin:password123@postgresql:5432/blogdb
       REDIS_URL: redis://redis:6379
       CLIENT_URL: http://localhost:3000
+      JWT_SECRET: dev_jwt_secret_key_123
+      JWT_REFRESH_SECRET: dev_refresh_secret_key_456
+      REFRESH_TOKEN_SECRET: dev_refresh_secret_key_456
     ports:
       - "5000:5000"
       - "9229:9229" # Debug port
@@ -49,8 +57,10 @@ services:
       - ./server/uploads:/app/uploads
       - ./server/logs:/app/logs
     depends_on:
-      - mongodb
-      - redis
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - blog_network_dev
     command: npm run dev
@@ -64,8 +74,10 @@ services:
     restart: unless-stopped
     environment:
       VITE_API_URL: http://localhost:5000/api
+      CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3000:3000"
+      - "3001:3001" # HMR port
     volumes:
       - ./client:/app
       - /app/node_modules
@@ -76,7 +88,7 @@ services:
     command: npm run dev
 
 volumes:
-  mongodb_dev_data:
+  postgresql_dev_data:
     driver: local
   redis_dev_data:
     driver: local

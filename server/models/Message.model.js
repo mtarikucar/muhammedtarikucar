@@ -15,7 +15,7 @@ const Message = sequelize.define('Message', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'Rooms',
+      model: 'rooms',
       key: 'id'
     }
   },
@@ -23,7 +23,7 @@ const Message = sequelize.define('Message', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   }

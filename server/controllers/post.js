@@ -55,12 +55,16 @@ async function createPost(req, res, next) {
       seo: seo || {}
     });
 
-    // Get post with author information
+    // Get post with author and category information
     const postWithAuthor = await Post.findByPk(post.id, {
       include: [{
         model: User,
         as: 'author',
         attributes: ['name', 'email', 'image']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
       }]
     });
 
@@ -131,20 +135,17 @@ async function getPosts(req, res, next) {
         orderClause = [['publishedAt', 'DESC']];
     }
 
-    // Add admin filter to query for better performance
-    const adminUserIds = await getAdminUserIds();
-    const finalWhereClause = {
-      ...whereClause,
-      authorId: { [Op.in]: adminUserIds }
-    };
-
     // Execute query with pagination
     const { count, rows: posts } = await Post.findAndCountAll({
-      where: finalWhereClause,
+      where: whereClause,
       include: [{
         model: User,
         as: 'author',
         attributes: ['name', 'image', 'bio', 'role']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
       }],
       order: orderClause,
       limit: parseInt(limit),
@@ -171,39 +172,79 @@ async function getPosts(req, res, next) {
   }
 }
 
-// Get single post by slug
-async function getPostBySlug(req, res, next) {
+// Get single post by ID (for editing)
+async function getPostById(req, res, next) {
   try {
-    const { slug } = req.params;
+    const { id } = req.params;
 
-    const post = await Post.findOne({
-      slug,
-      status: 'published'
-    })
-    .populate('author', 'name image bio')
-    .populate('relatedPosts', 'title slug excerpt featuredImage publishedAt readingTime');
+    const post = await Post.findByPk(id, {
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['name', 'image', 'bio']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
+      }]
+    });
 
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
-    // Track view
-    const viewData = {
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      referrer: req.get('Referrer'),
-      country: req.get('CF-IPCountry') || 'Unknown',
-      city: req.get('CF-IPCity') || 'Unknown',
-    };
+    // Check if user can access this post
+    const isAuthor = post.author.id === req.user.id;
+    const isAdmin = req.user.role === 'admin';
 
-    await post.incrementViews(viewData);
+    if (!isAuthor && !isAdmin) {
+      return next(AppError.forbidden('You can only edit your own posts'));
+    }
 
     res.json({
       status: 'success',
       data: { post }
     });
   } catch (error) {
-    logger.error('Get post by slug error:', error);
+    logger.error('Get post by ID error:', error);
+    next(error);
+  }
+}
+
+// Get single post by ID (public)
+async function getPost(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const post = await Post.findOne({
+      where: {
+        id,
+        status: 'published'
+      },
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['name', 'image', 'bio']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
+      }]
+    });
+
+    if (!post) {
+      return next(AppError.notFound('Post not found'));
+    }
+
+    // Track view by incrementing views count
+    await post.increment('views');
+
+    res.json({
+      status: 'success',
+      data: { post }
+    });
+  } catch (error) {
+    logger.error('Get post error:', error);
     next(error);
   }
 }
@@ -215,14 +256,20 @@ async function updatePost(req, res, next) {
     const updateData = req.body;
 
     // Find the post first to check ownership
-    const post = await Post.findById(id).populate('author', 'name email image');
+    const post = await Post.findByPk(id, {
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['id', 'name', 'email', 'image']
+      }]
+    });
 
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
     // Check if user is the author or admin
-    const isAuthor = post.author._id.toString() === req.user.id;
+    const isAuthor = post.author.id === req.user.id;
     const isAdmin = req.user.role === 'admin';
 
     if (!isAuthor && !isAdmin) {
@@ -240,11 +287,16 @@ async function updatePost(req, res, next) {
       delete updateData.status; // Only admin can change status
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('author', 'name email image');
+    await post.update(updateData);
+
+    // Get updated post with author info
+    const updatedPost = await Post.findByPk(id, {
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['name', 'email', 'image']
+      }]
+    });
 
     logger.info(`Post updated: ${updatedPost.title} by ${req.user.name || req.user.id}`);
 
@@ -265,21 +317,27 @@ async function deletePost(req, res, next) {
     const { id } = req.params;
 
     // Find the post first to check ownership
-    const post = await Post.findById(id).populate('author', 'name email image');
+    const post = await Post.findByPk(id, {
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['id', 'name', 'email', 'image']
+      }]
+    });
 
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
     // Check if user is the author or admin
-    const isAuthor = post.author._id.toString() === req.user.id;
+    const isAuthor = post.author.id === req.user.id;
     const isAdmin = req.user.role === 'admin';
 
     if (!isAuthor && !isAdmin) {
       return next(AppError.forbidden('You can only delete your own posts'));
     }
 
-    await Post.findByIdAndDelete(id);
+    await post.destroy();
 
     logger.info(`Post deleted: ${post.title} by ${req.user.name || req.user.id}`);
 
@@ -296,7 +354,7 @@ async function deletePost(req, res, next) {
 // Add comment to post (authenticated users)
 async function addComment(req, res, next) {
   try {
-    const { slug } = req.params;
+    const { id } = req.params;
     const { text, parentComment } = req.body;
 
     // Validate required fields
@@ -304,25 +362,31 @@ async function addComment(req, res, next) {
       return next(AppError.validation('Comment text is required'));
     }
 
-    const post = await Post.findOne({ slug, status: 'published' });
+    const post = await Post.findOne({ 
+      where: { id, status: 'published' }
+    });
 
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
-    // Create new comment using authenticated user info
+    // For PostgreSQL, comments should be stored in a separate Comment model
+    // This is a simplified version - you may want to create a Comment model
+    const comments = post.comments || [];
     const newComment = {
+      id: require('uuid').v4(),
       name: req.user.name || 'Anonymous',
       email: req.user.email || '',
       website: '',
       text: text.trim(),
       parentComment: parentComment || null,
-      isApproved: true, // Auto-approve comments from authenticated users
-      userId: req.user.id // Add user reference
+      isApproved: true,
+      userId: req.user.id,
+      createdAt: new Date()
     };
 
-    post.comments.push(newComment);
-    await post.save();
+    comments.push(newComment);
+    await post.update({ comments });
 
     logger.info(`New comment added to post: ${post.title} by ${req.user.name || req.user.id}`);
 
@@ -343,21 +407,22 @@ async function moderateComment(req, res, next) {
     const { postId, commentId } = req.params;
     const { action } = req.body; // 'approve' or 'reject'
 
-    const post = await Post.findById(postId);
+    const post = await Post.findByPk(postId);
 
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
-    const comment = post.comments.id(commentId);
+    const comments = post.comments || [];
+    const commentIndex = comments.findIndex(c => c.id === commentId);
 
-    if (!comment) {
+    if (commentIndex === -1) {
       return next(AppError.notFound('Comment not found'));
     }
 
     if (action === 'approve') {
-      comment.isApproved = true;
-      await post.save();
+      comments[commentIndex].isApproved = true;
+      await post.update({ comments });
 
       logger.info(`Comment approved on post: ${post.title}`);
 
@@ -366,8 +431,8 @@ async function moderateComment(req, res, next) {
         message: 'Comment approved successfully'
       });
     } else if (action === 'reject') {
-      post.comments.pull(commentId);
-      await post.save();
+      comments.splice(commentIndex, 1);
+      await post.update({ comments });
 
       logger.info(`Comment rejected and deleted from post: ${post.title}`);
 
@@ -389,14 +454,15 @@ async function deleteComment(req, res, next) {
   try {
     const { postId, commentId } = req.params;
 
-    const post = await Post.findById(postId);
+    const post = await Post.findByPk(postId);
 
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
-    post.comments.pull(commentId);
-    await post.save();
+    const comments = post.comments || [];
+    const filteredComments = comments.filter(c => c.id !== commentId);
+    await post.update({ comments: filteredComments });
 
     logger.info(`Comment deleted from post: ${post.title}`);
 
@@ -413,30 +479,39 @@ async function deleteComment(req, res, next) {
 // Like/unlike post
 async function toggleLike(req, res, next) {
   try {
-    const { slug } = req.params;
+    const { id } = req.params;
     const userId = req.user.id;
 
-    const post = await Post.findOne({ slug, status: 'published' });
+    const post = await Post.findOne({ 
+      where: { id, status: 'published' }
+    });
 
     if (!post) {
       return next(AppError.notFound('Post not found'));
     }
 
     // Check if user already liked this post
-    const user = await User.findById(userId).select('likedPosts');
-    const hasLiked = user?.likedPosts?.includes(post._id);
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'likedPosts']
+    });
+    const likedPosts = user?.likedPosts || [];
+    const hasLiked = likedPosts.includes(post.id);
 
     if (hasLiked) {
       // Unlike the post
-      post.likes = Math.max(0, post.likes - 1);
-      await User.findByIdAndUpdate(userId, { $pull: { likedPosts: post._id } });
+      const newLikes = Math.max(0, post.likes - 1);
+      await post.update({ likes: newLikes });
+      const updatedLikedPosts = likedPosts.filter(id => id !== post.id);
+      await user.update({ likedPosts: updatedLikedPosts });
     } else {
       // Like the post
-      post.likes += 1;
-      await User.findByIdAndUpdate(userId, { $addToSet: { likedPosts: post._id } });
+      await post.increment('likes');
+      const updatedLikedPosts = [...likedPosts, post.id];
+      await user.update({ likedPosts: updatedLikedPosts });
     }
 
-    await post.save();
+    // Get updated post for response
+    await post.reload();
 
     res.json({
       status: 'success',
@@ -456,16 +531,27 @@ async function toggleLike(req, res, next) {
 async function getFeaturedPosts(req, res, next) {
   try {
     const { limit = 3 } = req.query;
+    const { Op } = require('sequelize');
 
     const adminUserIds = await getAdminUserIds();
-    const posts = await Post.find({
-      status: 'published',
-      featured: true,
-      author: { $in: adminUserIds }
-    })
-      .populate('author', 'name image role')
-      .sort({ publishedAt: -1 })
-      .limit(parseInt(limit));
+    const posts = await Post.findAll({
+      where: {
+        status: 'published',
+        featured: true,
+        authorId: { [Op.in]: adminUserIds }
+      },
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['id', 'name', 'image', 'role']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
+      }],
+      order: [['publishedAt', 'DESC']],
+      limit: parseInt(limit)
+    });
 
     res.json({
       status: 'success',
@@ -481,15 +567,26 @@ async function getFeaturedPosts(req, res, next) {
 async function getPopularPosts(req, res, next) {
   try {
     const { limit = 5 } = req.query;
+    const { Op } = require('sequelize');
 
     const adminUserIds = await getAdminUserIds();
-    const posts = await Post.find({
-      status: 'published',
-      author: { $in: adminUserIds }
-    })
-      .populate('author', 'name image role')
-      .sort({ views: -1 })
-      .limit(parseInt(limit));
+    const posts = await Post.findAll({
+      where: {
+        status: 'published',
+        authorId: { [Op.in]: adminUserIds }
+      },
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['id', 'name', 'image', 'role']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
+      }],
+      order: [['views', 'DESC']],
+      limit: parseInt(limit)
+    });
 
     res.json({
       status: 'success',
@@ -505,15 +602,26 @@ async function getPopularPosts(req, res, next) {
 async function getRecentPosts(req, res, next) {
   try {
     const { limit = 5 } = req.query;
+    const { Op } = require('sequelize');
 
     const adminUserIds = await getAdminUserIds();
-    const posts = await Post.find({
-      status: 'published',
-      author: { $in: adminUserIds }
-    })
-      .populate('author', 'name image role')
-      .sort({ publishedAt: -1 })
-      .limit(parseInt(limit));
+    const posts = await Post.findAll({
+      where: {
+        status: 'published',
+        authorId: { [Op.in]: adminUserIds }
+      },
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['id', 'name', 'image', 'role']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
+      }],
+      order: [['publishedAt', 'DESC']],
+      limit: parseInt(limit)
+    });
 
     res.json({
       status: 'success',
@@ -531,28 +639,46 @@ async function getPostsByCategory(req, res, next) {
     const { category } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    const posts = await Post.find({
-      category,
-      status: 'published'
-    })
-    .populate('author', 'name image')
-    .sort({ publishedAt: -1 })
-    .limit(limit * 1)
-    .skip((page - 1) * limit)
-    .select('-content');
+    // Find category by id
+    const categoryData = await Category.findByPk(category);
 
-    const total = await Post.countDocuments({ category, status: 'published' });
+    if (!categoryData) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Category not found'
+      });
+    }
+
+    const { count, rows: posts } = await Post.findAndCountAll({
+      where: {
+        categoryId: categoryData.id,
+        status: 'published'
+      },
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['name', 'image']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
+      }],
+      order: [['publishedAt', 'DESC']],
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit),
+      attributes: { exclude: ['content'] }
+    });
 
     res.json({
       status: 'success',
       data: {
         posts,
-        category,
+        category: categoryData,
         pagination: {
           currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalPosts: total,
-          hasNext: page < Math.ceil(total / limit),
+          totalPages: Math.ceil(count / limit),
+          totalPosts: count,
+          hasNext: page < Math.ceil(count / limit),
           hasPrev: page > 1
         }
       }
@@ -574,50 +700,59 @@ async function getUserPosts(req, res, next) {
       sort = 'createdAt'
     } = req.query;
 
-    // Build query for user's posts
-    const query = { author: req.user.id };
+    const { Op } = require('sequelize');
+
+    // Build where clause for user's posts
+    const whereClause = { authorId: req.user.id };
 
     if (status) {
-      query.status = status;
+      whereClause.status = status;
     }
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { excerpt: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
+      whereClause[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { excerpt: { [Op.iLike]: `%${search}%` } },
+        { content: { [Op.iLike]: `%${search}%` } },
+        { tags: { [Op.overlap]: [search] } }
       ];
     }
 
     // Sort options
-    let sortOption = {};
+    let orderClause = [];
     switch (sort) {
       case 'views':
-        sortOption = { views: -1 };
+        orderClause = [['views', 'DESC']];
         break;
       case 'likes':
-        sortOption = { likes: -1 };
+        orderClause = [['likes', 'DESC']];
         break;
       case 'title':
-        sortOption = { title: 1 };
+        orderClause = [['title', 'ASC']];
         break;
       case 'publishedAt':
-        sortOption = { publishedAt: -1 };
+        orderClause = [['publishedAt', 'DESC']];
         break;
       default:
-        sortOption = { createdAt: -1 };
+        orderClause = [['createdAt', 'DESC']];
     }
 
     // Execute query with pagination
-    const posts = await Post.find(query)
-      .populate('author', 'name image bio role')
-      .populate('category', 'name slug color')
-      .sort(sortOption)
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Post.countDocuments(query);
+    const { count, rows: posts } = await Post.findAndCountAll({
+      where: whereClause,
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['name', 'image', 'bio', 'role']
+      }, {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name', 'color']
+      }],
+      order: orderClause,
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit)
+    });
 
     res.json({
       status: 'success',
@@ -625,9 +760,9 @@ async function getUserPosts(req, res, next) {
         posts,
         pagination: {
           currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalPosts: total,
-          hasNext: page < Math.ceil(total / limit),
+          totalPages: Math.ceil(count / limit),
+          totalPosts: count,
+          hasNext: page < Math.ceil(count / limit),
           hasPrev: page > 1
         }
       }
@@ -641,7 +776,8 @@ async function getUserPosts(req, res, next) {
 module.exports = {
   createPost,
   getPosts,
-  getPostBySlug,
+  getPostById,
+  getPost,
   updatePost,
   deletePost,
   addComment,

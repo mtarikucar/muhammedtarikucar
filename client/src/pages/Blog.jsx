@@ -104,16 +104,12 @@ const Blog = () => {
     setSearchParams({});
   };
 
-  const categories = [
-    { name: t('home.categories.technology'), slug: 'technology' },
-    { name: t('home.categories.programming'), slug: 'programming' },
-    { name: t('home.categories.webDevelopment'), slug: 'web-development' },
-    { name: t('home.categories.mobile'), slug: 'mobile' },
-    { name: t('home.categories.ai'), slug: 'ai' },
-    { name: t('home.categories.career'), slug: 'career' },
-    { name: t('home.categories.personal'), slug: 'personal' },
-    { name: t('home.categories.tutorial'), slug: 'tutorial' },
-  ];
+  // Fetch categories
+  const { data: categories } = useQuery(
+    ['categories'],
+    () => axios.get('/categories').then((res) => res.data.data || []),
+    { refetchOnWindowFocus: false }
+  );
 
   const currentCategory = searchParams.get('category');
   const currentTag = searchParams.get('tag');
@@ -193,7 +189,7 @@ const Blog = () => {
               </Typography>
               {currentCategory && (
                 <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">
-                  Kategori: {categories.find(c => c.slug === currentCategory)?.name || currentCategory}
+                  Kategori: {categories?.find(c => (c.id || c._id) === currentCategory)?.name || currentCategory}
                 </div>
               )}
               {currentTag && (
@@ -298,7 +294,7 @@ const Blog = () => {
             <BlogSidebar
               popularPosts={popularPosts || []}
               recentPosts={recentPosts || []}
-              categories={categories.map(cat => ({ _id: cat.slug, count: 0 }))}
+              categories={categories || []}
               tags={[]}
               onSearch={(term) => {
                 setSearchTerm(term);

@@ -59,6 +59,8 @@ const config = {
     allowlist: [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
       "www.muhammedtarikucar.com",
       "muhammedtarikucar.com",
       "https://muhammedtarikucar.com",
@@ -74,7 +76,7 @@ const config = {
   
   // Logging configuration
   logging: {
-    level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+    level: process.env.LOG_LEVEL ? process.env.LOG_LEVEL : (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
   },
 };
 

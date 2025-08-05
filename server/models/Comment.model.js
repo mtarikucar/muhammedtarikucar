@@ -11,7 +11,7 @@ const Comment = sequelize.define('Comment', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -19,7 +19,7 @@ const Comment = sequelize.define('Comment', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'Posts',
+      model: 'posts',
       key: 'id'
     }
   },
@@ -31,7 +31,7 @@ const Comment = sequelize.define('Comment', {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
-      model: 'Comments',
+      model: 'comments',
       key: 'id'
     }
   },

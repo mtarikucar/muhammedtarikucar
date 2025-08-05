@@ -7,43 +7,79 @@ const { logger } = require('../utils/logger');
 async function getCategories(req, res, next) {
   try {
     const { 
-      active = 'true', 
-      sort = 'sortOrder',
+      active,
+      search,
+      sort = 'name',
       page = 1,
       limit = 50
     } = req.query;
 
-    const query = {};
+    const { Op } = require('sequelize');
+    const whereClause = {};
+    
+    // Active filter
     if (active === 'true') {
-      query.isActive = true;
+      whereClause.isActive = true;
+    } else if (active === 'false') {
+      whereClause.isActive = false;
     }
 
-    const sortOptions = {};
+    // Search filter
+    if (search && search.trim()) {
+      whereClause[Op.or] = [
+        { name: { [Op.iLike]: `%${search.trim()}%` } },
+        { description: { [Op.iLike]: `%${search.trim()}%` } }
+      ];
+    }
+
+    let orderClause = [];
     switch (sort) {
       case 'name':
-        sortOptions.name = 1;
+        orderClause = [['name', 'ASC']];
         break;
       case 'postCount':
-        sortOptions.postCount = -1;
+        orderClause = [['postCount', 'DESC']];
         break;
+      case 'createdAt':
       case 'newest':
-        sortOptions.createdAt = -1;
+        orderClause = [['createdAt', 'DESC']];
+        break;
+      case 'oldest':
+        orderClause = [['createdAt', 'ASC']];
         break;
       default:
-        sortOptions.sortOrder = 1;
-        sortOptions.name = 1;
+        orderClause = [['sortOrder', 'ASC'], ['name', 'ASC']];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    const categories = await Category.find(query)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .populate('createdBy', 'name email')
-      .populate('updatedBy', 'name email');
+    const { count, rows: categories } = await Category.findAndCountAll({
+      where: whereClause,
+      order: orderClause,
+      offset: offset,
+      limit: parseInt(limit),
+      include: [
+        { 
+          model: require('../models').User, 
+          as: 'createdBy', 
+          attributes: ['id', 'name', 'email'],
+          required: false
+        }
+      ]
+    });
 
-    const total = await Category.countDocuments(query);
+    // Calculate post counts for each category
+    for (let category of categories) {
+      const postCount = await Post.count({ 
+        where: { 
+          categoryId: category.id,
+          status: 'published' 
+        } 
+      });
+      category.dataValues.postCount = postCount;
+    }
+
+    const total = count;
 
     res.json({
       status: 'success',
@@ -63,23 +99,17 @@ async function getCategories(req, res, next) {
   }
 }
 
-// Get category by ID or slug
+// Get category by ID
 async function getCategoryById(req, res, next) {
   try {
     const { id } = req.params;
     
-    let category;
-    if (id.match(/^[0-9a-fA-F]{24}$/)) {
-      // MongoDB ObjectId
-      category = await Category.findById(id)
-        .populate('createdBy', 'name email')
-        .populate('updatedBy', 'name email');
-    } else {
-      // Slug
-      category = await Category.findOne({ slug: id, isActive: true })
-        .populate('createdBy', 'name email')
-        .populate('updatedBy', 'name email');
-    }
+    const category = await Category.findByPk(id, {
+      include: [
+        { model: require('../models').User, as: 'createdBy', attributes: ['id', 'name', 'email'] },
+        { model: require('../models').User, as: 'updatedBy', attributes: ['id', 'name', 'email'] }
+      ]
+    });
 
     if (!category) {
       return next(AppError.notFound('Category not found'));
@@ -113,35 +143,31 @@ async function createCategory(req, res, next) {
     }
 
     // Check if category with same name exists
+    const { Op } = require('sequelize');
     const existingCategory = await Category.findOne({
-      name: { $regex: new RegExp(`^${name}$`, 'i') }
+      where: {
+        name: {
+          [Op.iLike]: name.trim()
+        }
+      }
     });
 
     if (existingCategory) {
       return next(AppError.duplicateEntry('Category with this name already exists'));
     }
 
-    // Generate slug from name
-    const slug = name.trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single
-      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-
-    const category = new Category({
+    const category = await Category.create({
       name: name.trim(),
-      slug,
       description: description?.trim() || '',
       color: color || '#3B82F6',
       icon: icon || 'folder',
       image,
       sortOrder: sortOrder || 0,
-      seo,
-      createdBy: req.user.id
+      seo: seo || {},
+      createdById: req.user.id
     });
 
-    await category.save();
+    // Category is already saved with create()
 
     logger.info(`New category created: ${name} by ${req.user.name}`);
 
@@ -171,7 +197,7 @@ async function updateCategory(req, res, next) {
       seo
     } = req.body;
 
-    const category = await Category.findById(id);
+    const category = await Category.findByPk(id);
 
     if (!category) {
       return next(AppError.notFound('Category not found'));
@@ -179,9 +205,16 @@ async function updateCategory(req, res, next) {
 
     // Check if new name conflicts with existing category
     if (name && name !== category.name) {
+      const { Op } = require('sequelize');
       const existingCategory = await Category.findOne({
-        name: { $regex: new RegExp(`^${name}$`, 'i') },
-        _id: { $ne: id }
+        where: {
+          name: {
+            [Op.iLike]: name.trim()
+          },
+          id: {
+            [Op.ne]: category.id
+          }
+        }
       });
 
       if (existingCategory) {
@@ -189,19 +222,21 @@ async function updateCategory(req, res, next) {
       }
     }
 
-    // Update fields
-    if (name) category.name = name.trim();
-    if (description !== undefined) category.description = description.trim();
-    if (color) category.color = color;
-    if (icon) category.icon = icon;
-    if (image !== undefined) category.image = image;
-    if (isActive !== undefined) category.isActive = isActive;
-    if (sortOrder !== undefined) category.sortOrder = sortOrder;
-    if (seo) category.seo = { ...category.seo, ...seo };
-    
-    category.updatedBy = req.user.id;
+    // Prepare update data
+    const updateData = {};
+    if (name) {
+      updateData.name = name.trim();
+    }
+    if (description !== undefined) updateData.description = description.trim();
+    if (color) updateData.color = color;
+    if (icon) updateData.icon = icon;
+    if (image !== undefined) updateData.image = image;
+    if (isActive !== undefined) updateData.isActive = isActive;
+    if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
+    if (seo) updateData.seo = { ...category.seo, ...seo };
+    updateData.updatedById = req.user.id;
 
-    await category.save();
+    await category.update(updateData);
 
     logger.info(`Category updated: ${category.name} by ${req.user.name}`);
 
@@ -221,26 +256,34 @@ async function deleteCategory(req, res, next) {
   try {
     const { id } = req.params;
 
-    const category = await Category.findById(id);
+    const category = await Category.findByPk(id);
 
     if (!category) {
       return next(AppError.notFound('Category not found'));
     }
 
     // Check if category has posts
-    const postCount = await Post.countDocuments({ category: id });
+    const postCount = await Post.count({ where: { categoryId: category.id } });
 
     if (postCount > 0) {
-      return next(AppError.validation(`Cannot delete category. It has ${postCount} posts. Please move or delete the posts first.`));
+      // Move posts to null category (uncategorized)
+      await Post.update(
+        { categoryId: null },
+        { where: { categoryId: category.id } }
+      );
     }
 
-    await Category.findByIdAndDelete(id);
+    await category.destroy();
 
     logger.info(`Category deleted: ${category.name} by ${req.user.name}`);
 
     res.json({
       status: 'success',
-      message: 'Category deleted successfully'
+      message: 'Category deleted successfully',
+      data: {
+        deletedCategory: category.name,
+        affectedPosts: postCount
+      }
     });
   } catch (error) {
     logger.error('Delete category error:', error);
@@ -251,28 +294,35 @@ async function deleteCategory(req, res, next) {
 // Get category statistics
 async function getCategoryStats(req, res, next) {
   try {
-    const stats = await Category.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalCategories: { $sum: 1 },
-          activeCategories: {
-            $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
-          },
-          totalPosts: { $sum: '$postCount' }
-        }
-      }
-    ]);
+    const { sequelize } = require('../config/database');
+    
+    // Get basic stats
+    const totalCategories = await Category.count();
+    const activeCategories = await Category.count({ where: { isActive: true } });
+    
+    // Get sum of post counts
+    const totalPostsResult = await sequelize.query(
+      'SELECT COALESCE(SUM("postCount"), 0) as total FROM categories',
+      { type: sequelize.QueryTypes.SELECT }
+    );
+    const totalPosts = parseInt(totalPostsResult[0].total) || 0;
 
-    const topCategories = await Category.find({ isActive: true })
-      .sort({ postCount: -1 })
-      .limit(5)
-      .select('name postCount color');
+    // Get top categories
+    const topCategories = await Category.findAll({
+      where: { isActive: true },
+      order: [['postCount', 'DESC']],
+      limit: 5,
+      attributes: ['id', 'name', 'postCount', 'color']
+    });
 
     res.json({
       status: 'success',
       data: {
-        stats: stats[0] || { totalCategories: 0, activeCategories: 0, totalPosts: 0 },
+        stats: { 
+          totalCategories, 
+          activeCategories, 
+          totalPosts 
+        },
         topCategories
       }
     });
@@ -291,14 +341,23 @@ async function reorderCategories(req, res, next) {
       return next(AppError.validation('Categories array is required'));
     }
 
-    const bulkOps = categories.map(cat => ({
-      updateOne: {
-        filter: { _id: cat.id },
-        update: { sortOrder: cat.sortOrder, updatedBy: req.user.id }
+    // Use Sequelize transaction for bulk updates
+    const { sequelize } = require('../config/database');
+    
+    await sequelize.transaction(async (t) => {
+      for (const cat of categories) {
+        await Category.update(
+          { 
+            sortOrder: cat.sortOrder, 
+            updatedById: req.user.id 
+          },
+          { 
+            where: { id: cat.id },
+            transaction: t 
+          }
+        );
       }
-    }));
-
-    await Category.bulkWrite(bulkOps);
+    });
 
     logger.info(`Categories reordered by ${req.user.name}`);
 
